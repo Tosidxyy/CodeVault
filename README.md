@@ -1,6 +1,8 @@
 # CodeVault
 
-本地优先的算法知识管理 Chrome 插件。当前提供插件工程、popup、设置页入口和 LeetCode 页面悬浮面板；题目识别、代码保存、IndexedDB、笔记及 AI 尚未实现。
+本地优先的算法知识管理 Chrome 插件。当前支持 LeetCode 中文站与国际站题目识别，以及 popup、设置页入口和页面悬浮面板；代码保存、IndexedDB、笔记及 AI 尚未实现。
+
+打开 `/problems/<slug>/` 下的题目、题解或提交记录页面，展开面板即可查看标题、URL、难度和标签。中文站优先显示翻译名称。站内切题会更新信息，离开题目页会清空；请求失败可点击“重新识别”。关闭面板会取消请求。当前仅识别，不自动收藏，竞赛专用 URL 尚未适配。
 
 ## 开发
 
@@ -30,6 +32,8 @@ npm test
 
 当前没有数据写入功能，数据保存验证将在 IndexedDB 接入后补充。
 
+题目识别测试另覆盖 URL 规范化、翻译回退、元数据校验、站内导航、慢请求返回时的竞态、失败重试及非题目页面。需要联网验证真实页面时运行 `npm run test:live`；这会访问两站公开的“两数之和”题目并检查面板显示，不需要登录。网络或网站状态可能使该测试失败，因此未纳入默认测试。
+
 Windows 若下载版 Chromium 出现“并行配置不正确”的系统启动错误，可使用已安装的 Edge 运行同一测试：
 
 ```powershell
@@ -45,7 +49,8 @@ npm test
 - `src/content`：注入 LeetCode 的 React 悬浮面板，CSS 隔离于 Shadow DOM。
 - `src/background`：Manifest V3 service worker。
 - `src/components`：共享 React 组件。
-- `src/database`、`src/platforms`、`src/ai`、`src/utils`：后续模块预留目录。
+- `src/platforms`：平台适配器接口、题目数据类型及 LeetCode 元数据获取。
+- `src/database`、`src/ai`、`src/utils`：后续模块预留目录。
 - `public/manifest.json`：插件权限与入口声明。
 - `scripts/build.mjs`：依次构建页面、content script 与 background。
 - `docs`：产品需求、架构、设计和界面参考。

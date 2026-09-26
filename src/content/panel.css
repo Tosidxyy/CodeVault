@@ -13,3 +13,16 @@ p { margin: 6px 0 0; color: #666; }
 .subtitle { margin: 12px 0 16px; font-size: 12px; }
 .card { padding: 14px; margin: 12px 0; border-radius: 12px; background: #f7f7f7; }
 footer { margin-top: 18px; color: #666; font-size: 12px; }
+.problem h3 { margin: 8px 0; font-size: 17px; overflow-wrap: anywhere; }
+.problem a { color: #202020; text-decoration: none; }
+.problem a:hover { text-decoration: underline; }
+.problem a:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.difficulty, .tag { display: inline-block; border-radius: 6px; padding: 2px 8px; font-size: 12px; }
+.easy { background: #dff5e8; color: #176138; }
+.medium { background: #fff0ce; color: #835100; }
+.hard { background: #ffe4e4; color: #a22626; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tag { background: #eaeaea; color: #454545; overflow-wrap: anywhere; max-width: 100%; }
+.problem-url { font-size: 11px; overflow-wrap: anywhere; margin-top: 10px; }
+.muted { font-size: 12px; color: #666; }
+.retry { margin-top: 10px; padding: 6px 12px; border-radius: 8px; background: #202020; color: white; }

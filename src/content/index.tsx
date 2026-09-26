@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import styles from './panel.css?inline';
+import { ProblemCard } from './ProblemCard';
 
 function App() {
   const [open, setOpen] = useState(false);
@@ -14,7 +15,7 @@ function App() {
     {open && <section id="codevault-panel" className="panel" aria-label="CodeVault 面板">
       <header><h2>🚀 CodeVault</h2><button className="close" aria-label="关闭面板" onClick={() => setOpen(false)}>×</button></header>
       <p className="subtitle">把每一次思考，留给下一次进步。</p>
-      <div className="card"><strong>当前题目</strong><p>题目自动识别即将开放。</p></div>
+      <ProblemCard />
       <div className="card"><strong>我的解法</strong><p>未来可在这里保存、整理并加载你的解法。</p></div>
       <footer>本地知识库 · 笔记 · AI 分析<br />功能开发中</footer>
     </section>}
