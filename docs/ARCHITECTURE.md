@@ -3,11 +3,19 @@
 ## 当前实现（2026-09-26）
 
 - React + TypeScript + Vite 工程已建立，使用 TailwindCSS Vite 插件构建 popup 和 options 样式。
-- `scripts/build.mjs` 顺序构建插件页面、独立 IIFE content script 和 ES module background service worker，统一输出到 `dist/`。
+- `scripts/build.mjs` 顺序构建插件页面、IIFE content script、ES module background service worker 和 IIFE editor 桥接，统一输出到 `dist/`。
 - Manifest V3 仅声明 LeetCode 国际站与中文站的 content script；为支持站内导航，从两站全部页面注入基础面板。目前未申请额外 API 权限。
 - content script 使用 Shadow DOM 和独立 CSS，避免全局样式影响宿主页面；界面支持展开、关闭和 Escape 收起。
 - popup 与 options 可通过 Vite 开发服务器预览。扩展调试使用生产构建后手动重新加载的流程。
-- `platforms` 已实现适配器接口、Problem 类型与 LeetCode 元数据获取；`database` 已实现题目持久化。`ai`、`utils` 为预留目录，Zustand、shadcn/ui 和 Markdown 尚未接入。
+- `platforms` 已实现题目适配器和编辑器读取客户端；`database` 已实现题目与解法持久化。`ai`、`utils` 为预留目录，Zustand、shadcn/ui 和 Markdown 尚未接入。
+
+## 编辑器读取
+
+- manifest 在两站注入独立的 `editor.js`，运行于 MAIN world，只读访问 `window.monaco.editor.getEditors()`。通过可见且可编辑的实例读取 model 的 `getValue()` 与 `getLanguageId()`，排除 plaintext 测试用例，不拼接虚拟滚动的 DOM 行。
+- content 与桥接使用 `window.postMessage` 通信，校验同一 window、origin、消息类型、请求ID、页面 URL 和返回数据大小。桥接无存储能力；只有用户在扩展表单点击保存后才调用后台写入。
+- 多个候选编辑器时返回错误，用户可通过悬浮按钮在目标 DOM 节点标记随机 token 精确读取。一次悬浮指令消费后清除，不会在返回原题时重新触发。
+- 表单持有不可编辑的代码快照及自动读取的语言，支持名称和备注；切题清理未保存表单，过期读取回调不更新新题。读取超时3秒，代码上限50万字符。当前不实现 `setCode()`。
+- Monaco API 属于宿主页面实现细节，无法读取时给出可重试错误；不假定其他平台或只读题解区使用同一接口。
 
 ## 题目识别
 
@@ -19,12 +27,13 @@
 
 ## 本地存储
 
-- background service worker 统一管理扩展来源下的 IndexedDB `codevault`，版本1包含 `problems` store（主键 `id`）和 `updatedAt` 索引。首次安装按需初始化，重新加载或重启不清空数据；未来新增 store 需增加版本并迁移。
+- background service worker 统一管理扩展来源下的 IndexedDB `codevault`。版本1包含 `problems` store（主键 `id`）和 `updatedAt` 索引；版本2新增 `solutions` store（主键 `id`）及 `problemId` 索引。升级按 oldVersion 增量执行，保留现有数据；首次安装按需初始化。
 - `StoredProblem` 在 Problem 基础上增加 `createdAt`、`updatedAt`。同题更新保留创建时间，最后一次主动保存决定标题、站点链接等元数据。列表按更新时间倒序返回。
-- `chrome.runtime.sendMessage` 使用 `codevault` channel 和 `problems.get/list/save` 操作。监听器同步注册并返回 `true` 保持异步响应；只有事务 `complete` 后才回复成功，写入失败则回滚。
+- `chrome.runtime.sendMessage` 使用 `codevault` channel，支持 `problems.get/list/save` 与 `solutions.list/save`。监听器同步注册并返回 `true` 保持异步响应；只有事务 `complete` 后才回复成功，写入失败则回滚。
 - 后台校验发送方扩展ID、站点来源、数据字段与长度；只接受扩展页或 LeetCode 顶层 content script。保存时校验题目 URL 与发送方同源。`sender.url` 可能保留 SPA 初始路径，因此实时题目路径由 content UI 在点击时核对。
 - 面板加载收藏状态，支持主动收藏、更新与错误重试；切题或卸载后忽略过期回调。popup 在打开、获得焦点或手动刷新时读取列表，不提供实时跨标签广播。
-- 本阶段仅实现 Problem 存储，Solution、Note、图片和迁移到未来版本的逻辑尚未实现。未增加扩展权限或外部存储服务。
+- Solution 使用读取快照时生成的 UUID；同一请求重试不创建副本，同UUID但不同内容被拒绝。新快照可创建新版本。记录名称、完整代码、语言、`source: own`、来源 URL、备注、problemId及创建时间。
+- 解法保存使用 `problems` 和 `solutions` 两表事务；没有父题目时自动创建，已有收藏保持原元数据。任一写入失败时整体回滚，不覆盖其他版本。Note、图片及解法编辑/删除尚未实现。未新增 API 权限或外部存储服务。
 
 ## 验证方式
 
@@ -32,7 +41,9 @@
 
 存储集成测试验证扩展与宿主来源隔离、并发保存去重、失败回滚与重试，以及同一独立浏览器配置文件重启后离线读取。故障注入只发生在测试浏览器后台。
 
-`npm run test:live` 为可选联网测试。本轮在本机 Edge 中验证两站真实“两数之和”页面，接口均返回200，识别与收藏成功；popup 中两站共享一条收藏。尚未实现编辑器适配。
+解法测试覆盖两站受控页面的编辑器桥接、完整150行代码、语言、多版本、定向捕获、空代码、跨题隔离、事务回滚、重试去重及v1→v2迁移；重启测试确认代码原样保留。
+
+`npm run test:live` 为可选联网测试。本轮中文站真实编辑器读取98字符默认C++代码并保存成功；国际站题目识别与收藏可用，但页面进入 Cloudflare 人机验证，未完成真实编辑器验证。受控测试通过不能替代该项实站验证。
 
 ## 架构原则
 
@@ -142,6 +153,9 @@ Solution:
 -   language
 -   code
 -   note
+
+-   sourceUrl
+-   createdAt
 
 Note:
 

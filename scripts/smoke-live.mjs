@@ -32,6 +32,15 @@ try {
       await panel.getByRole('button', { name: /^(收藏题目|更新收藏)$/ }).click();
       await panel.getByText('已收藏 · 保存在本机', { exact: true }).waitFor();
       console.log(`${host}: bookmark committed to extension IndexedDB`);
+      await page.waitForFunction(() => window.monaco?.editor?.getEditors?.().some((editor) => !editor.getRawOptions().readOnly && editor.getModel()?.getLanguageId() !== 'plaintext' && editor.getModel()?.getValue().trim()), undefined, { timeout: 45000 });
+      await panel.getByRole('button', { name: '读取当前代码', exact: true }).click();
+      await panel.getByLabel('代码预览', { exact: true }).waitFor();
+      const captured = await panel.getByLabel('代码预览', { exact: true }).inputValue();
+      assert.ok(captured.trim().length > 0);
+      await panel.getByLabel('解法名称', { exact: true }).fill(`实测 ${host}`);
+      await panel.getByRole('button', { name: '保存解法', exact: true }).click();
+      await panel.getByText(`已保存：实测 ${host}`, { exact: true }).waitFor();
+      console.log(`${host}: editor snapshot saved (${captured.length} characters)`);
     } finally {
       await page.screenshot({ path: `test-results/live-${host}.png` });
     }
@@ -43,6 +52,8 @@ try {
   await popup.getByRole('heading', { name: '我的收藏（1）', exact: true }).waitFor();
   await popup.getByRole('link', { name: 'Two Sum', exact: true }).waitFor();
   console.log('Both sites share one saved problem; popup displays latest metadata');
+  const solutions = await popup.evaluate(() => chrome.runtime.sendMessage({ channel: 'codevault', action: 'solutions.list', problemId: 'leetcode:1' }));
+  assert.equal(solutions.data.length, 2);
 } finally {
   await context.close();
 }

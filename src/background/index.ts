@@ -1,5 +1,6 @@
 import { getProblem, listProblems, saveProblem } from '../database/problems';
-import { validateProblem, validProblemId } from '../database/validation';
+import { validateProblem, validProblemId, validateSolution } from '../database/validation';
+import { listSolutions, saveSolution } from '../database/solutions';
 import type { StorageResponse } from '../database/types';
 
 function trustedSender(sender: chrome.runtime.MessageSender): boolean {
@@ -20,6 +21,18 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
         return { ok: true, data: await getProblem(message.id) };
       case 'problems.list':
         return { ok: true, data: await listProblems() };
+      case 'solutions.list':
+        if (!validProblemId(message.problemId)) return { ok: false, error: '题目ID无效。' };
+        return { ok: true, data: await listSolutions(message.problemId) };
+      case 'solutions.save': {
+        let problem, solution;
+        try { problem = validateProblem(message.problem); solution = validateSolution(message.solution, problem); }
+        catch { return { ok: false, error: '解法数据无效，请检查名称、代码和来源。' }; }
+        if (!sender.url?.startsWith(chrome.runtime.getURL('')) && new URL(sender.url!).origin !== new URL(problem.url).origin) {
+          return { ok: false, error: '题目来源不匹配，请重新读取代码。' };
+        }
+        return { ok: true, data: await saveSolution(problem, solution) };
+      }
       case 'problems.save': {
         let problem;
         try { problem = validateProblem(message.problem); }

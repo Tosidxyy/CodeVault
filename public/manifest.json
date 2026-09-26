@@ -11,5 +11,10 @@
     "matches": ["https://leetcode.com/*", "https://leetcode.cn/*"],
     "js": ["content.js"],
     "run_at": "document_idle"
+  }, {
+    "matches": ["https://leetcode.com/*", "https://leetcode.cn/*"],
+    "js": ["editor.js"],
+    "world": "MAIN",
+    "run_at": "document_idle"
   }]
 }

@@ -1,7 +1,7 @@
 import { build } from 'vite';
 
 await build();
-for (const entry of ['content', 'background']) {
+for (const entry of ['content', 'background', 'editor']) {
   await build({
     configFile: false,
     publicDir: false,
@@ -12,7 +12,7 @@ for (const entry of ['content', 'background']) {
       lib: {
         entry: `src/${entry}/index.ts${entry === 'content' ? 'x' : ''}`,
         name: `CodeVault_${entry}`,
-        formats: [entry === 'content' ? 'iife' : 'es'],
+        formats: [entry === 'background' ? 'es' : 'iife'],
         fileName: () => `${entry}.js`,
       },
     },

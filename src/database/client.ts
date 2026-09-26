@@ -1,5 +1,5 @@
 import type { Problem } from '../platforms/types';
-import type { StorageRequest, StorageResponse, StoredProblem } from './types';
+import type { SolutionDraft, StoredSolution, StorageRequest, StorageResponse, StoredProblem } from './types';
 
 async function send<T>(request: StorageRequest): Promise<T> {
   if (typeof chrome === 'undefined' || !chrome.runtime?.id) {
@@ -16,4 +16,9 @@ export const problemStorage = {
   get: (id: string) => send<StoredProblem | null>({ channel: 'codevault', action: 'problems.get', id }),
   list: () => send<StoredProblem[]>({ channel: 'codevault', action: 'problems.list' }),
   save: (problem: Problem) => send<StoredProblem>({ channel: 'codevault', action: 'problems.save', problem }),
+};
+
+export const solutionStorage = {
+  list: (problemId: string) => send<StoredSolution[]>({ channel: 'codevault', action: 'solutions.list', problemId }),
+  save: (problem: Problem, solution: SolutionDraft) => send<StoredSolution>({ channel: 'codevault', action: 'solutions.save', problem, solution }),
 };

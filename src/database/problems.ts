@@ -3,14 +3,20 @@ import type { StoredProblem } from './types';
 
 let connection: Promise<IDBDatabase> | undefined;
 
-function openDatabase(): Promise<IDBDatabase> {
+export function openDatabase(): Promise<IDBDatabase> {
   if (connection) return connection;
   connection = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open('codevault', 1);
+    const request = indexedDB.open('codevault', 2);
     let blocked = false;
-    request.onupgradeneeded = () => {
-      const store = request.result.createObjectStore('problems', { keyPath: 'id' });
-      store.createIndex('updatedAt', 'updatedAt');
+    request.onupgradeneeded = (event) => {
+      if (event.oldVersion < 1) {
+        const store = request.result.createObjectStore('problems', { keyPath: 'id' });
+        store.createIndex('updatedAt', 'updatedAt');
+      }
+      if (event.oldVersion < 2) {
+        const store = request.result.createObjectStore('solutions', { keyPath: 'id' });
+        store.createIndex('problemId', 'problemId');
+      }
     };
     request.onerror = () => reject(request.error);
     request.onblocked = () => { blocked = true; reject(new Error('Database upgrade blocked')); };

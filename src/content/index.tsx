@@ -2,24 +2,28 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import styles from './panel.css?inline';
 import { ProblemCard } from './ProblemCard';
+import { HoverCapture } from './HoverCapture';
+import type { CaptureIntent } from '../platforms/editor';
 
 function App() {
   const [open, setOpen] = useState(false);
+  const [intent, setIntent] = useState<CaptureIntent>();
+  const close = () => { setOpen(false); setIntent(undefined); };
   return <div className="vault" onKeyDown={(event) => {
     if (event.key === 'Escape' && open) {
       event.stopPropagation();
-      setOpen(false);
+      close();
       (event.currentTarget.querySelector('.launcher') as HTMLButtonElement)?.focus();
     }
   }}>
     {open && <section id="codevault-panel" className="panel" aria-label="CodeVault 面板">
-      <header><h2>🚀 CodeVault</h2><button className="close" aria-label="关闭面板" onClick={() => setOpen(false)}>×</button></header>
+      <header><h2>🚀 CodeVault</h2><button className="close" aria-label="关闭面板" onClick={close}>×</button></header>
       <p className="subtitle">把每一次思考，留给下一次进步。</p>
-      <ProblemCard />
-      <div className="card"><strong>我的解法</strong><p>未来可在这里保存、整理并加载你的解法。</p></div>
-      <footer>本地知识库 · 笔记 · AI 分析<br />功能开发中</footer>
+      <ProblemCard intent={intent} onIntentHandled={() => setIntent(undefined)} />
+      <footer>题目与解法保存在本机<br />笔记与 AI 分析开发中</footer>
     </section>}
-    <button className="launcher" aria-label={open ? '收起 CodeVault' : '展开 CodeVault'} aria-expanded={open} aria-controls="codevault-panel" onClick={() => setOpen(!open)}>🚀</button>
+    <HoverCapture hidden={open} onCapture={(next) => { setIntent(next); setOpen(true); }} />
+    <button className="launcher" aria-label={open ? '收起 CodeVault' : '展开 CodeVault'} aria-expanded={open} aria-controls="codevault-panel" onClick={() => open ? close() : setOpen(true)}>🚀</button>
   </div>;
 }
 
