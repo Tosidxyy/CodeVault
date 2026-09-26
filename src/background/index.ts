@@ -2,6 +2,7 @@ import { getProblem, listProblems, saveProblem } from '../database/problems';
 import { validateProblem, validProblemId, validateSolution, validSolutionTarget, validateMetadata } from '../database/validation';
 import { listSolutions, saveSolution, changeSolution, SolutionConflictError } from '../database/solutions';
 import type { StorageResponse } from '../database/types';
+import { getNote, saveNote, NoteConflictError } from '../database/notes';
 
 function trustedSender(sender: chrome.runtime.MessageSender): boolean {
   if (sender.id !== chrome.runtime.id || !sender.url) return false;
@@ -16,6 +17,22 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
   if (!trustedSender(sender)) return { ok: false, error: '不支持的请求来源。' };
   try {
     switch (message.action) {
+      case 'notes.get':
+        if (!validProblemId(message.problemId)) return { ok: false, error: '题目ID无效。' };
+        return { ok: true, data: await getNote(message.problemId) };
+      case 'notes.save': {
+        let problem;
+        try { problem = validateProblem(message.problem); }
+        catch { return { ok: false, error: '题目信息无效。' }; }
+        if (typeof message.markdown !== 'string' || message.markdown.length > 20000 ||
+          !Number.isSafeInteger(message.revision) || (message.revision as number) < 0 || (message.revision as number) >= Number.MAX_SAFE_INTEGER) {
+          return { ok: false, error: '笔记数据无效，最多支持20000字符。' };
+        }
+        if (!sender.url?.startsWith(chrome.runtime.getURL('')) && new URL(sender.url!).origin !== new URL(problem.url).origin) {
+          return { ok: false, error: '题目来源不匹配，请重新打开面板。' };
+        }
+        return { ok: true, data: await saveNote(problem, message.markdown, message.revision as number) };
+      }
       case 'solutions.update':
       case 'solutions.delete': {
         if (!validSolutionTarget(message)) return { ok: false, error: '解法信息无效。' };
@@ -56,7 +73,7 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
       }
       default: return { ok: false, error: '不支持的存储操作。' };
     }
-  } catch (error) { return { ok: false, error: error instanceof SolutionConflictError ? error.message : '本地存储暂时不可用，请重试。' }; }
+  } catch (error) { return { ok: false, error: error instanceof SolutionConflictError || error instanceof NoteConflictError ? error.message : '本地存储暂时不可用，请重试。' }; }
 }
 
 // Register synchronously and keep the channel open until the IDB transaction completes.

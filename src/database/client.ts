@@ -1,4 +1,5 @@
 import type { Problem } from '../platforms/types';
+import type { StoredNote } from './types';
 import type { SolutionDraft, SolutionMetadata, StoredSolution, StorageRequest, StorageResponse, StoredProblem } from './types';
 
 async function send<T>(request: StorageRequest): Promise<T> {
@@ -16,6 +17,11 @@ export const problemStorage = {
   get: (id: string) => send<StoredProblem | null>({ channel: 'codevault', action: 'problems.get', id }),
   list: () => send<StoredProblem[]>({ channel: 'codevault', action: 'problems.list' }),
   save: (problem: Problem) => send<StoredProblem>({ channel: 'codevault', action: 'problems.save', problem }),
+};
+
+export const noteStorage = {
+  get: (problemId: string) => send<StoredNote | null>({ channel: 'codevault', action: 'notes.get', problemId }),
+  save: (problem: Problem, markdown: string, revision: number) => send<StoredNote>({ channel: 'codevault', action: 'notes.save', problem, markdown, revision }),
 };
 
 export const solutionStorage = {

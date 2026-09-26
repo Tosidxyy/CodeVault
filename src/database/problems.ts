@@ -6,7 +6,7 @@ let connection: Promise<IDBDatabase> | undefined;
 export function openDatabase(): Promise<IDBDatabase> {
   if (connection) return connection;
   connection = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open('codevault', 2);
+    const request = indexedDB.open('codevault', 3);
     let blocked = false;
     request.onupgradeneeded = (event) => {
       if (event.oldVersion < 1) {
@@ -17,6 +17,7 @@ export function openDatabase(): Promise<IDBDatabase> {
         const store = request.result.createObjectStore('solutions', { keyPath: 'id' });
         store.createIndex('problemId', 'problemId');
       }
+      if (event.oldVersion < 3) request.result.createObjectStore('notes', { keyPath: 'problemId' });
     };
     request.onerror = () => reject(request.error);
     request.onblocked = () => { blocked = true; reject(new Error('Database upgrade blocked')); };

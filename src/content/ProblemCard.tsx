@@ -2,6 +2,7 @@ import { useProblem } from './useProblem';
 import { Bookmark } from './Bookmark';
 import { useState } from 'react';
 import { Solutions } from './Solutions';
+import { Note } from './Note';
 import type { CaptureIntent } from '../platforms/editor';
 
 const difficultyLabels = { Easy: '简单', Medium: '中等', Hard: '困难' };
@@ -23,5 +24,5 @@ export function ProblemCard({ intent, onIntentHandled }: { intent?: CaptureInten
       <p className="problem-url">{state.problem.url}</p>
       <Bookmark key={`${state.problem.url}:${revision}`} problem={state.problem} />
     </>}
-  </div>{state.status === 'ready' && <Solutions key={state.problem.url} problem={state.problem} intent={intent} onIntentHandled={onIntentHandled} onSaved={() => setRevision((value) => value + 1)} />}</>;
+  </div>{state.status === 'ready' && <><Solutions key={state.problem.url} problem={state.problem} intent={intent} onIntentHandled={onIntentHandled} onSaved={() => setRevision((value) => value + 1)} /><Note key={`note:${state.problem.url}`} problem={state.problem} onSaved={() => setRevision((value) => value + 1)} /></>}</>;
 }

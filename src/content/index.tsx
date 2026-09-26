@@ -20,7 +20,7 @@ function App() {
       <header><h2>🚀 CodeVault</h2><button className="close" aria-label="关闭面板" onClick={close}>×</button></header>
       <p className="subtitle">把每一次思考，留给下一次进步。</p>
       <ProblemCard intent={intent} onIntentHandled={() => setIntent(undefined)} />
-      <footer>题目与解法保存在本机<br />笔记与 AI 分析开发中</footer>
+      <footer>题目、解法与笔记保存在本机<br />AI 分析开发中</footer>
     </section>}
     <HoverCapture hidden={open} onCapture={(next) => { setIntent(next); setOpen(true); }} />
     <button className="launcher" aria-label={open ? '收起 CodeVault' : '展开 CodeVault'} aria-expanded={open} aria-controls="codevault-panel" onClick={() => open ? close() : setOpen(true)}>🚀</button>
