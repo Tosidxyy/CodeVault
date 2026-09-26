@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "CodeVault",
+  "version": "0.1.0",
+  "description": "本地优先的算法知识管理工具。",
+  "minimum_chrome_version": "120",
+  "action": { "default_popup": "popup.html", "default_title": "CodeVault" },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "options_page": "options.html",
+  "content_scripts": [{
+    "matches": ["https://leetcode.com/*", "https://leetcode.cn/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }]
+}

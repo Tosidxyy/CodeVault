@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@layer base {
+  body { margin: 0; background: #f5f5f5; color: #202020; font-family: Arial, "Microsoft YaHei", sans-serif; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid #2563eb; outline-offset: 4px; }
+}

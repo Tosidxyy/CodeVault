@@ -1,0 +1,15 @@
+:host { all: initial; }
+.vault { font: 14px/1.6 Arial, "Microsoft YaHei", sans-serif; color: #202020; }
+* { box-sizing: border-box; }
+button { font: inherit; cursor: pointer; border: 0; }
+button:focus-visible { outline: 2px solid #2563eb; outline-offset: 4px; }
+.launcher { display: block; margin-left: auto; width: 48px; height: 48px; border-radius: 16px; background: #202020; color: white; font-size: 22px; box-shadow: 0 4px 18px #0002; }
+.launcher:hover { background: #404040; }
+.panel { width: min(360px, calc(100vw - 40px)); max-height: calc(100dvh - 112px); overflow: auto; padding: 20px; margin-bottom: 12px; border: 1px solid #e5e5e5; border-radius: 20px; background: white; box-shadow: 0 10px 30px #0002; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h2 { margin: 0; font-size: 20px; font-weight: 700; }
+.close { background: #f5f5f5; color: #444; width: 32px; height: 32px; border-radius: 10px; font-size: 22px; }
+p { margin: 6px 0 0; color: #666; }
+.subtitle { margin: 12px 0 16px; font-size: 12px; }
+.card { padding: 14px; margin: 12px 0; border-radius: 12px; background: #f7f7f7; }
+footer { margin-top: 18px; color: #666; font-size: 12px; }
