@@ -4,10 +4,10 @@
 
 - React + TypeScript + Vite 工程已建立，使用 TailwindCSS Vite 插件构建 popup 和 options 样式。
 - `scripts/build.mjs` 顺序构建插件页面、IIFE content script、ES module background service worker 和 IIFE editor 桥接，统一输出到 `dist/`。
-- Manifest V3 仅声明 LeetCode 国际站与中文站的 content script；为支持站内导航，从两站全部页面注入基础面板。目前未申请额外 API 权限。
+- Manifest V3 仅声明 LeetCode 国际站与中文站的 content script；为支持站内导航，从两站全部页面注入基础面板。AI 配置按需申请用户指定 HTTPS 域名的可选站点权限。
 - content script 使用 Shadow DOM 和独立 CSS，避免全局样式影响宿主页面；界面支持展开、关闭和 Escape 收起。
 - popup 与 options 可通过 Vite 开发服务器预览。扩展调试使用生产构建后手动重新加载的流程。
-- `platforms` 已实现题目适配器和编辑器读取客户端；`database` 已实现题目与解法持久化。`ai`、`utils` 为预留目录，Markdown 已接入 react-markdown；Zustand、shadcn/ui 尚未接入。
+- `platforms` 已实现题目适配器和编辑器读取客户端；`database` 已实现题目与解法持久化。`ai` 已实现配置和分析，`utils` 为预留目录，Markdown 已接入 react-markdown；Zustand、shadcn/ui 尚未接入。
 
 ## 编辑器读取与加载
 
@@ -36,10 +36,19 @@
 - 后台校验发送方扩展ID、站点来源、数据字段与长度；只接受扩展页或 LeetCode 顶层 content script。保存时校验题目 URL 与发送方同源。`sender.url` 可能保留 SPA 初始路径，因此实时题目路径由 content UI 在点击时核对。
 - 面板加载收藏状态，支持主动收藏、更新与错误重试；切题或卸载后忽略过期回调。popup 在打开、获得焦点或手动刷新时读取列表，不提供实时跨标签广播。
 - Solution 使用读取快照时生成的 UUID；同一请求重试不创建副本，同UUID但不同内容被拒绝。新快照可创建新版本。记录名称、完整代码、语言、`source: own`、来源 URL、备注、problemId及创建时间。
-- 解法保存使用 `problems` 和 `solutions` 两表事务；没有父题目时自动创建，已有收藏保持原元数据。任一写入失败时整体回滚，不覆盖其他版本。笔记已支持本地图片附件。未新增 API 权限或外部存储服务。
+- 解法保存使用 `problems` 和 `solutions` 两表事务；没有父题目时自动创建，已有收藏保持原元数据。任一写入失败时整体回滚，不覆盖其他版本。笔记已支持本地图片附件。本地存储不使用外部服务，AI 分析由用户主动发送至配置的接口。
 - 解法元数据更新只允许名称、备注、来源（own/reference/template）和无凭据的 HTTP/HTTPS 链接；代码、语言、题目与创建时间保留。更新和删除在单个 readwrite 事务中读取并校验 problemId 与 revision，过期或不存在时拒绝写入。旧记录缺失 revision 视为0，每次更新递增，无需增加数据库版本。删除只操作目标解法，保留题目与其他版本。UI 支持刷新冲突列表，不进行后台自动覆盖。
 
-## 验证方式
+## AI 接口
+
+- `codevault-settings` 独立 IndexedDB 保存唯一 AI 配置，主数据仍为版本3。只有扩展 options.html 能修改或清除配置；公开状态仅含 endpoint/model/revision，不返回 Key。每次修改生成新 revision，拒绝旧配置下准备的请求。
+- manifest 声明可选 `https://*/*`；设置页通过用户点击请求具体 origin 的权限，后台发送前再次检查。API 地址只允许无凭据、查询参数和锚点的 HTTPS `/chat/completions` 路径；拒绝重定向，credentials 为 omit。
+- 后台 Port 接收分析，校验发送方、题目、代码和配置。AbortController 在取消、端口断开、配置修改/清除或25秒到期时终止请求。前端切题卸载断开 Port，忽略过期响应。不自动重试。
+- Chat Completions 使用 model/messages/stream:false，读取 choices[0].message.content；响应上限512000字节、文本上限100000字符。只显示固定 HTTP 错误提示，不向 UI 回传服务商错误正文，结果按 React 文本展示并隐藏意外回显的 Key。
+- 协议依据：[OpenAI Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)、[DeepSeek 首次调用](https://api-docs.deepseek.com/)、[Chrome permissions](https://developer.chrome.com/docs/extensions/reference/api/permissions)。未使用 OpenAI SDK，兼容性以服务商支持此格式为限。
+- 测试在独立浏览器中模拟权限响应和服务商 fetch，覆盖配置保存/刷新/清除、Key 不回显、非设置页写入拒绝、明确发送、取消、切题、权限撤销与配置版本失效。真实权限弹窗及付费 API 未实测。
+
+## 存储与回归验证
 
 图片附件以可选 `StoredNote.images` 映射（UUID → PNG data URL）与笔记同一记录保存，无需升级版本3数据库。`notes.save` 接收图片映射，校验数量、编码、PNG签名、单张和总大小后保留 Markdown 中仍出现的本地引用；笔记与附件随同一事务提交。旧纯文本记录缺少 images 时视为空映射。冲突重试比较文字与附件，避免同文字不同图片被误判为已保存。
 
@@ -59,7 +68,7 @@
 
 解法测试覆盖两站受控页面的编辑器桥接、完整150行代码、语言、多版本、定向捕获、空代码、跨题隔离、事务回滚、重试去重及v1→v2迁移；重启测试确认代码原样保留。
 
-加载测试覆盖成功替换、撤销边界、重复加载、空编辑器、语言不匹配、只读、多实例、内容/模型/语言变化和切题；原存储记录不受影响。管理测试覆盖来源校验、编辑取消/保存、刷新持久化、删除确认、跨题和并发冲突、更新/删除失败回滚、父题目与其他版本保留。默认测试共16项通过。
+加载测试覆盖成功替换、撤销边界、重复加载、空编辑器、语言不匹配、只读、多实例、内容/模型/语言变化和切题；原存储记录不受影响。管理测试覆盖来源校验、编辑取消/保存、刷新持久化、删除确认、跨题和并发冲突、更新/删除失败回滚、父题目与其他版本保留。默认测试共18项通过。
 
 `npm run test:live` 为可选联网测试。本轮中文站真实编辑器读取98字符默认C++代码并保存成功，随后将保存版本加载到含临时草稿的编辑器，实际按 Ctrl+Z 恢复草稿。可用 CODEVAULT_LIVE_HOST 选择单站。国际站保留此前 Cloudflare 人机验证导致的真实编辑器验证限制；受控测试不能替代实站验证。
 

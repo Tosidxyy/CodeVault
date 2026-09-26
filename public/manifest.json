@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "本地优先的算法知识管理工具。",
   "minimum_chrome_version": "120",
+  "optional_host_permissions": ["https://*/*"],
   "action": { "default_popup": "popup.html", "default_title": "CodeVault" },
   "background": { "service_worker": "background.js", "type": "module" },
   "options_page": "options.html",

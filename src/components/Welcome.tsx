@@ -5,7 +5,7 @@ export function Welcome({ compact = false }: { compact?: boolean }) {
     <p className="mt-4 text-sm leading-6 text-neutral-600">打开 LeetCode，点击右下角的悬浮按钮展开面板。</p>
     {!compact && <div className="my-5 rounded-xl bg-neutral-100 p-4 text-sm leading-6">
       <strong>从一道题开始积累</strong>
-      <p className="mt-1 text-neutral-600">已支持识别、收藏题目，保存多个解法并加载回编辑器，以及 Markdown 题目笔记。AI 将在后续版本开放。</p>
+      <p className="mt-1 text-neutral-600">已支持识别、收藏题目，保存多个解法并加载回编辑器，以及 Markdown 图文笔记。配置自己的 AI 接口后可分析代码。</p>
     </div>}
     <a className="mt-5 block rounded-xl bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-700" href="https://leetcode.cn/problemset/" target="_blank" rel="noreferrer">打开 LeetCode</a>
   </section>;

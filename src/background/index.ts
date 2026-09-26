@@ -1,4 +1,5 @@
 import { getProblem, listProblems, saveProblem } from '../database/problems';
+import '../ai/background';
 import { validateProblem, validProblemId, validateSolution, validSolutionTarget, validateMetadata } from '../database/validation';
 import { listSolutions, saveSolution, changeSolution, SolutionConflictError } from '../database/solutions';
 import type { StorageResponse } from '../database/types';
