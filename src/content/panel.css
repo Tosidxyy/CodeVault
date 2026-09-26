@@ -26,3 +26,4 @@ footer { margin-top: 18px; color: #666; font-size: 12px; }
 .problem-url { font-size: 11px; overflow-wrap: anywhere; margin-top: 10px; }
 .muted { font-size: 12px; color: #666; }
 .retry { margin-top: 10px; padding: 6px 12px; border-radius: 8px; background: #202020; color: white; }
+.retry:disabled { cursor: wait; opacity: 0.5; }

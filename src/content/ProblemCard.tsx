@@ -1,4 +1,5 @@
 import { useProblem } from './useProblem';
+import { Bookmark } from './Bookmark';
 
 const difficultyLabels = { Easy: '简单', Medium: '中等', Hard: '困难' };
 
@@ -16,7 +17,7 @@ export function ProblemCard() {
         ? state.problem.tags.map((tag) => <span className="tag" key={tag}>{tag}</span>)
         : <span className="muted">暂无标签</span>}</div>
       <p className="problem-url">{state.problem.url}</p>
-      <p className="muted">已识别 · 尚未收藏</p>
+      <Bookmark key={state.problem.url} problem={state.problem} />
     </>}
   </div>;
 }

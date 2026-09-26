@@ -1,0 +1,19 @@
+import type { Problem } from '../platforms/types';
+import type { StorageRequest, StorageResponse, StoredProblem } from './types';
+
+async function send<T>(request: StorageRequest): Promise<T> {
+  if (typeof chrome === 'undefined' || !chrome.runtime?.id) {
+    throw new Error('请在已加载的 CodeVault 扩展中查看收藏。');
+  }
+  let response: StorageResponse;
+  try { response = await chrome.runtime.sendMessage(request) as StorageResponse; }
+  catch { throw new Error('无法连接本地知识库，请重新加载扩展并刷新页面。'); }
+  if (!response || !response.ok) throw new Error(response?.error || '本地存储暂时不可用，请重试。');
+  return response.data as T;
+}
+
+export const problemStorage = {
+  get: (id: string) => send<StoredProblem | null>({ channel: 'codevault', action: 'problems.get', id }),
+  list: () => send<StoredProblem[]>({ channel: 'codevault', action: 'problems.list' }),
+  save: (problem: Problem) => send<StoredProblem>({ channel: 'codevault', action: 'problems.save', problem }),
+};

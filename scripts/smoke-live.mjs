@@ -29,11 +29,20 @@ try {
       assert.ok(await panel.locator('.tag').count() >= 2);
       console.log(`${host}: title, canonical URL, difficulty and tags loaded`);
       assert.equal(await panel.getByRole('link', { name: title, exact: true }).getAttribute('href'), `https://${host}/problems/two-sum/`);
+      await panel.getByRole('button', { name: /^(收藏题目|更新收藏)$/ }).click();
+      await panel.getByText('已收藏 · 保存在本机', { exact: true }).waitFor();
+      console.log(`${host}: bookmark committed to extension IndexedDB`);
     } finally {
       await page.screenshot({ path: `test-results/live-${host}.png` });
     }
     await page.close();
   }
+  const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
+  const popup = await context.newPage();
+  await popup.goto(`chrome-extension://${new URL(worker.url()).host}/popup.html`);
+  await popup.getByRole('heading', { name: '我的收藏（1）', exact: true }).waitFor();
+  await popup.getByRole('link', { name: 'Two Sum', exact: true }).waitFor();
+  console.log('Both sites share one saved problem; popup displays latest metadata');
 } finally {
   await context.close();
 }
