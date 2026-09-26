@@ -30,7 +30,7 @@ footer { margin-top: 18px; color: #666; font-size: 12px; }
 .capture-hover { position: fixed; padding: 8px 10px; border-radius: 8px; background: #202020; color: white; box-shadow: 0 3px 14px #0002; }
 .solutions > .retry { display: block; }
 .solutions label { display: block; margin-top: 10px; font-size: 12px; }
-.solutions input, .solutions textarea { display: block; width: 100%; margin-top: 4px; border: 1px solid #ccc; border-radius: 8px; padding: 8px; background: white; color: #202020; font: inherit; }
+.solutions input, .solutions textarea, .solutions select { display: block; width: 100%; margin-top: 4px; border: 1px solid #ccc; border-radius: 8px; padding: 8px; background: white; color: #202020; font: inherit; }
 .solutions textarea { min-height: 60px; resize: vertical; }
 .solutions .code-preview { height: 130px; font: 12px/1.5 Consolas, monospace; white-space: pre; }
 .solutions input:focus-visible, .solutions textarea:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }

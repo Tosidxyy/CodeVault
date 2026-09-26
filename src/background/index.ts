@@ -1,6 +1,6 @@
 import { getProblem, listProblems, saveProblem } from '../database/problems';
-import { validateProblem, validProblemId, validateSolution } from '../database/validation';
-import { listSolutions, saveSolution } from '../database/solutions';
+import { validateProblem, validProblemId, validateSolution, validSolutionTarget, validateMetadata } from '../database/validation';
+import { listSolutions, saveSolution, changeSolution, SolutionConflictError } from '../database/solutions';
 import type { StorageResponse } from '../database/types';
 
 function trustedSender(sender: chrome.runtime.MessageSender): boolean {
@@ -16,6 +16,16 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
   if (!trustedSender(sender)) return { ok: false, error: '不支持的请求来源。' };
   try {
     switch (message.action) {
+      case 'solutions.update':
+      case 'solutions.delete': {
+        if (!validSolutionTarget(message)) return { ok: false, error: '解法信息无效。' };
+        let metadata;
+        if (message.action === 'solutions.update') {
+          try { metadata = validateMetadata(message.metadata); }
+          catch { return { ok: false, error: '请检查名称、备注和来源链接（仅支持 HTTP/HTTPS）。' }; }
+        }
+        return { ok: true, data: await changeSolution(message.problemId as string, message.id as string, message.revision as number, metadata) };
+      }
       case 'problems.get':
         if (!validProblemId(message.id)) return { ok: false, error: '题目ID无效。' };
         return { ok: true, data: await getProblem(message.id) };
@@ -46,7 +56,7 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
       }
       default: return { ok: false, error: '不支持的存储操作。' };
     }
-  } catch { return { ok: false, error: '本地存储暂时不可用，请重试。' }; }
+  } catch (error) { return { ok: false, error: error instanceof SolutionConflictError ? error.message : '本地存储暂时不可用，请重试。' }; }
 }
 
 // Register synchronously and keep the channel open until the IDB transaction completes.

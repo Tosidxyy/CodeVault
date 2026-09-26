@@ -32,11 +32,12 @@
 
 - background service worker 统一管理扩展来源下的 IndexedDB `codevault`。版本1包含 `problems` store（主键 `id`）和 `updatedAt` 索引；版本2新增 `solutions` store（主键 `id`）及 `problemId` 索引。升级按 oldVersion 增量执行，保留现有数据；首次安装按需初始化。
 - `StoredProblem` 在 Problem 基础上增加 `createdAt`、`updatedAt`。同题更新保留创建时间，最后一次主动保存决定标题、站点链接等元数据。列表按更新时间倒序返回。
-- `chrome.runtime.sendMessage` 使用 `codevault` channel，支持 `problems.get/list/save` 与 `solutions.list/save`。监听器同步注册并返回 `true` 保持异步响应；只有事务 `complete` 后才回复成功，写入失败则回滚。
+- `chrome.runtime.sendMessage` 使用 `codevault` channel，支持 `problems.get/list/save` 与 `solutions.list/save/update/delete`。监听器同步注册并返回 `true` 保持异步响应；只有事务 `complete` 后才回复成功，写入失败则回滚。
 - 后台校验发送方扩展ID、站点来源、数据字段与长度；只接受扩展页或 LeetCode 顶层 content script。保存时校验题目 URL 与发送方同源。`sender.url` 可能保留 SPA 初始路径，因此实时题目路径由 content UI 在点击时核对。
 - 面板加载收藏状态，支持主动收藏、更新与错误重试；切题或卸载后忽略过期回调。popup 在打开、获得焦点或手动刷新时读取列表，不提供实时跨标签广播。
 - Solution 使用读取快照时生成的 UUID；同一请求重试不创建副本，同UUID但不同内容被拒绝。新快照可创建新版本。记录名称、完整代码、语言、`source: own`、来源 URL、备注、problemId及创建时间。
-- 解法保存使用 `problems` 和 `solutions` 两表事务；没有父题目时自动创建，已有收藏保持原元数据。任一写入失败时整体回滚，不覆盖其他版本。Note、图片及解法编辑/删除尚未实现。未新增 API 权限或外部存储服务。
+- 解法保存使用 `problems` 和 `solutions` 两表事务；没有父题目时自动创建，已有收藏保持原元数据。任一写入失败时整体回滚，不覆盖其他版本。Note、图片尚未实现。未新增 API 权限或外部存储服务。
+- 解法元数据更新只允许名称、备注、来源（own/reference/template）和无凭据的 HTTP/HTTPS 链接；代码、语言、题目与创建时间保留。更新和删除在单个 readwrite 事务中读取并校验 problemId 与 revision，过期或不存在时拒绝写入。旧记录缺失 revision 视为0，每次更新递增，无需增加数据库版本。删除只操作目标解法，保留题目与其他版本。UI 支持刷新冲突列表，不进行后台自动覆盖。
 
 ## 验证方式
 
@@ -46,7 +47,7 @@
 
 解法测试覆盖两站受控页面的编辑器桥接、完整150行代码、语言、多版本、定向捕获、空代码、跨题隔离、事务回滚、重试去重及v1→v2迁移；重启测试确认代码原样保留。
 
-加载测试覆盖成功替换、撤销边界、重复加载、空编辑器、语言不匹配、只读、多实例、内容/模型/语言变化和切题；原存储记录不受影响。默认测试共11项通过。
+加载测试覆盖成功替换、撤销边界、重复加载、空编辑器、语言不匹配、只读、多实例、内容/模型/语言变化和切题；原存储记录不受影响。管理测试覆盖来源校验、编辑取消/保存、刷新持久化、删除确认、跨题和并发冲突、更新/删除失败回滚、父题目与其他版本保留。默认测试共13项通过。
 
 `npm run test:live` 为可选联网测试。本轮中文站真实编辑器读取98字符默认C++代码并保存成功，随后将保存版本加载到含临时草稿的编辑器，实际按 Ctrl+Z 恢复草稿。可用 CODEVAULT_LIVE_HOST 选择单站。国际站保留此前 Cloudflare 人机验证导致的真实编辑器验证限制；受控测试不能替代实站验证。
 

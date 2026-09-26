@@ -3,8 +3,9 @@ import type { Problem } from '../platforms/types';
 import { getProblemRoute } from '../platforms/leetcode';
 import { loadCode, readCode } from '../platforms/editor';
 import type { CaptureIntent } from '../platforms/editor';
-import type { SolutionDraft, StoredSolution } from '../database/types';
+import type { SolutionDraft, SolutionMetadata, StoredSolution } from '../database/types';
 import { solutionStorage } from '../database/client';
+import { SolutionMetadataEditor, sourceNames } from './SolutionMetadataEditor';
 
 export function Solutions({ problem, intent, onSaved, onIntentHandled }: { problem: Problem; intent?: CaptureIntent; onSaved: () => void; onIntentHandled: () => void }) {
   const formId = useId();
@@ -13,6 +14,8 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
   const [listError, setListError] = useState('');
   const [revision, setRevision] = useState(0);
   const [draft, setDraft] = useState<SolutionDraft | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -29,7 +32,7 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
   }, [problem.id, revision]);
 
   async function capture(target?: string) {
-    if (saving.current) return;
+    if (saving.current || editing || deleting) return;
     const token = ++sequence.current;
     setBusy(true); setError(''); setMessage('');
     try {
@@ -69,9 +72,26 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
     finally { saving.current = false; if (token === sequence.current) setBusy(false); }
   }
 
+  async function change(solution: StoredSolution, metadata?: SolutionMetadata) {
+    if (busy || saving.current) return;
+    if (getProblemRoute(location.href)?.url !== problem.url) { setError('题目已切换，请重新打开面板。'); return; }
+    const token = ++sequence.current;
+    saving.current = true; setBusy(true); setError(''); setMessage('');
+    try {
+      if (metadata) await solutionStorage.update(solution, metadata);
+      else await solutionStorage.delete(solution);
+      if (token !== sequence.current) return;
+      setEditing(null); setDeleting(null); setRevision((value) => value + 1);
+      setMessage(metadata ? '解法信息已更新。' : `已删除：${solution.name}`);
+    } catch (e) { if (token === sequence.current) setError((e as Error).message); }
+    finally { saving.current = false; if (token === sequence.current) setBusy(false); }
+  }
+
   return <section className="card solutions" aria-label="我的解法">
     <strong>我的解法</strong>
-    <button className="retry" disabled={busy} onClick={() => void capture()}>{draft ? '重新读取代码' : '读取当前代码'}</button>
+    <button className="retry" disabled={busy || !!editing || !!deleting} onClick={() => void capture()}>{draft ? '重新读取代码' : '读取当前代码'}</button>
+    <button className="secondary" disabled={busy || loading} onClick={() => { setEditing(null); setDeleting(null); setError(''); setMessage(''); setRevision((value) => value + 1); }}>刷新解法</button>
+    {editing && <p className="muted">刷新解法会放弃未保存的修改。</p>}
     {busy && <p role="status">正在处理…</p>}
     {error && <p role="alert">{error}</p>}
     {message && <p role="status">{message}</p>}
@@ -85,12 +105,21 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
     {loading ? <p>正在读取解法…</p> : listError ? <><p role="alert">{listError}</p><button className="retry" onClick={() => setRevision((value) => value + 1)}>重试读取解法</button></>
       : items.length ? <ul className="solution-list">{items.map((solution) => <li key={solution.id}><details>
         <summary>{solution.name}<span className="muted"> · {solution.language}</span></summary>
-        <p className="muted">我的代码 · {new Date(solution.createdAt).toLocaleString()}</p>
+        <p className="muted">{sourceNames[solution.source]} · {new Date(solution.createdAt).toLocaleString()}</p>
         <pre>{solution.code}</pre>
         {solution.note && <p className="solution-note">{solution.note}</p>}
         <a href={solution.sourceUrl} target="_blank" rel="noreferrer">查看来源</a>
-        <button className="retry" disabled={busy} onClick={() => void load(solution)}>加载到编辑器</button>
+        <button className="retry" disabled={busy || !!editing || !!deleting} onClick={() => void load(solution)}>加载到编辑器</button>
         <p className="muted">将替换当前代码；可在编辑器按 Ctrl+Z 撤销。</p>
+        <div className="form-actions">
+          <button className="secondary" disabled={busy || !!draft || !!editing || !!deleting} onClick={() => { setEditing(solution.id); setError(''); setMessage(''); }}>编辑信息</button>
+          <button className="secondary" disabled={busy || !!draft || !!editing || !!deleting} onClick={() => { setDeleting(solution.id); setError(''); setMessage(''); }}>删除解法</button>
+        </div>
+        {editing === solution.id && <SolutionMetadataEditor solution={solution} busy={busy} onSave={(metadata) => void change(solution, metadata)} onCancel={() => { setEditing(null); setError(''); }} />}
+        {deleting === solution.id && <div role="group" aria-label="删除确认">
+          <p>确定永久删除“{solution.name}”？题目收藏和其他版本将保留。</p>
+          <div className="form-actions"><button className="retry" disabled={busy} onClick={() => void change(solution)}>确认删除</button><button className="secondary" disabled={busy} onClick={() => { setDeleting(null); setError(''); }}>取消删除</button></div>
+        </div>}
       </details></li>)}</ul> : <p className="muted">暂无解法。读取代码后，命名并保存到本机。</p>}
   </section>;
 }

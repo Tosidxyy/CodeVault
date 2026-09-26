@@ -10,7 +10,7 @@ export interface SolutionDraft {
   name: string;
   code: string;
   language: string;
-  source: 'own';
+  source: 'own' | 'reference' | 'template';
   sourceUrl: string;
   note: string;
 }
@@ -18,14 +18,19 @@ export interface SolutionDraft {
 export interface StoredSolution extends SolutionDraft {
   problemId: string;
   createdAt: number;
+  revision?: number;
 }
+
+export type SolutionMetadata = Pick<SolutionDraft, 'name' | 'note' | 'source' | 'sourceUrl'>;
 
 export type StorageRequest =
   | { channel: 'codevault'; action: 'problems.get'; id: string }
   | { channel: 'codevault'; action: 'problems.list' }
   | { channel: 'codevault'; action: 'problems.save'; problem: Problem }
   | { channel: 'codevault'; action: 'solutions.list'; problemId: string }
-  | { channel: 'codevault'; action: 'solutions.save'; problem: Problem; solution: SolutionDraft };
+  | { channel: 'codevault'; action: 'solutions.save'; problem: Problem; solution: SolutionDraft }
+  | { channel: 'codevault'; action: 'solutions.update'; problemId: string; id: string; revision: number; metadata: SolutionMetadata }
+  | { channel: 'codevault'; action: 'solutions.delete'; problemId: string; id: string; revision: number };
 
 export type StorageResponse =
   | { ok: true; data: StoredProblem | StoredProblem[] | StoredSolution | StoredSolution[] | null }

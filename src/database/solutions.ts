@@ -1,6 +1,33 @@
 import { openDatabase } from './problems';
 import type { Problem } from '../platforms/types';
-import type { SolutionDraft, StoredSolution } from './types';
+import type { SolutionDraft, SolutionMetadata, StoredSolution } from './types';
+
+export class SolutionConflictError extends Error {}
+
+export async function changeSolution(problemId: string, id: string, revision: number, metadata?: SolutionMetadata): Promise<StoredSolution | null> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('solutions', 'readwrite');
+    const store = tx.objectStore('solutions');
+    let result: StoredSolution | null = null;
+    let conflict = false;
+    tx.oncomplete = () => resolve(result);
+    tx.onabort = () => reject(conflict ? new SolutionConflictError('解法已变化或不存在，请刷新解法后重试。') : tx.error ?? new Error('Write aborted'));
+    const request = store.get(id);
+    request.onsuccess = () => {
+      try {
+        const current = request.result as StoredSolution | undefined;
+        if (!current || current.problemId !== problemId || (current.revision ?? 0) !== revision) {
+          conflict = true; tx.abort(); return;
+        }
+        if (metadata) {
+          result = { ...current, ...metadata, revision: revision + 1 };
+          store.put(result);
+        } else store.delete(id);
+      } catch { tx.abort(); }
+    };
+  });
+}
 
 export async function listSolutions(problemId: string): Promise<StoredSolution[]> {
   const db = await openDatabase();
