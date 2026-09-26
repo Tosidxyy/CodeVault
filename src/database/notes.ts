@@ -14,7 +14,7 @@ export async function getNote(problemId: string): Promise<StoredNote | null> {
   });
 }
 
-export async function saveNote(problem: Problem, markdown: string, revision: number): Promise<StoredNote> {
+export async function saveNote(problem: Problem, markdown: string, revision: number, images: Record<string, string>): Promise<StoredNote> {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(['notes', 'problems'], 'readwrite');
@@ -29,11 +29,11 @@ export async function saveNote(problem: Problem, markdown: string, revision: num
         const previous = request.result as StoredNote | undefined;
         if ((previous?.revision ?? 0) !== revision) {
           // A retry after a lost response may safely return the identical saved text.
-          if (previous?.markdown === markdown) { result = previous; return; }
+          if (previous?.markdown === markdown && JSON.stringify(previous.images ?? {}) === JSON.stringify(images)) { result = previous; return; }
           conflict = true; tx.abort(); return;
         }
         const now = Math.max(Date.now(), (previous?.updatedAt ?? 0) + 1);
-        result = { problemId: problem.id, markdown, revision: revision + 1, updatedAt: now };
+        result = { problemId: problem.id, markdown, images, revision: revision + 1, updatedAt: now };
         notes.put(result);
         const problems = tx.objectStore('problems');
         const parent = problems.get(problem.id);

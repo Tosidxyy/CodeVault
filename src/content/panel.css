@@ -39,6 +39,7 @@ footer { margin-top: 18px; color: #666; font-size: 12px; }
 .markdown-preview h1 { font-size: 22px; }
 .markdown-preview h2 { font-size: 19px; }
 .markdown-preview h3 { font-size: 16px; }
+.markdown-preview img { display: block; max-width: 100%; height: auto; border-radius: 6px; }
 .solutions .code-preview { height: 130px; font: 12px/1.5 Consolas, monospace; white-space: pre; }
 .solutions input:focus-visible, .solutions textarea:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .form-actions { display: flex; align-items: baseline; gap: 12px; }

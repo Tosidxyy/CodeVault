@@ -21,7 +21,7 @@ export const problemStorage = {
 
 export const noteStorage = {
   get: (problemId: string) => send<StoredNote | null>({ channel: 'codevault', action: 'notes.get', problemId }),
-  save: (problem: Problem, markdown: string, revision: number) => send<StoredNote>({ channel: 'codevault', action: 'notes.save', problem, markdown, revision }),
+  save: (problem: Problem, markdown: string, revision: number, images?: Record<string, string>) => send<StoredNote>({ channel: 'codevault', action: 'notes.save', problem, markdown, revision, images }),
 };
 
 export const solutionStorage = {

@@ -3,6 +3,7 @@ import { validateProblem, validProblemId, validateSolution, validSolutionTarget,
 import { listSolutions, saveSolution, changeSolution, SolutionConflictError } from '../database/solutions';
 import type { StorageResponse } from '../database/types';
 import { getNote, saveNote, NoteConflictError } from '../database/notes';
+import { validateNoteImages } from '../database/noteImages';
 
 function trustedSender(sender: chrome.runtime.MessageSender): boolean {
   if (sender.id !== chrome.runtime.id || !sender.url) return false;
@@ -31,7 +32,10 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
         if (!sender.url?.startsWith(chrome.runtime.getURL('')) && new URL(sender.url!).origin !== new URL(problem.url).origin) {
           return { ok: false, error: '题目来源不匹配，请重新打开面板。' };
         }
-        return { ok: true, data: await saveNote(problem, message.markdown, message.revision as number) };
+        let images;
+        try { images = validateNoteImages(message.images, message.markdown); }
+        catch (error) { return { ok: false, error: (error as Error).message }; }
+        return { ok: true, data: await saveNote(problem, message.markdown, message.revision as number, images) };
       }
       case 'solutions.update':
       case 'solutions.delete': {

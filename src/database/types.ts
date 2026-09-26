@@ -24,6 +24,7 @@ export interface StoredSolution extends SolutionDraft {
 export type SolutionMetadata = Pick<SolutionDraft, 'name' | 'note' | 'source' | 'sourceUrl'>;
 
 export interface StoredNote {
+  images?: Record<string, string>;
   problemId: string;
   markdown: string;
   revision: number;
@@ -32,7 +33,7 @@ export interface StoredNote {
 
 export type StorageRequest =
   | { channel: 'codevault'; action: 'notes.get'; problemId: string }
-  | { channel: 'codevault'; action: 'notes.save'; problem: Problem; markdown: string; revision: number }
+  | { channel: 'codevault'; action: 'notes.save'; problem: Problem; markdown: string; revision: number; images?: Record<string, string> }
   | { channel: 'codevault'; action: 'problems.get'; id: string }
   | { channel: 'codevault'; action: 'problems.list' }
   | { channel: 'codevault'; action: 'problems.save'; problem: Problem }
