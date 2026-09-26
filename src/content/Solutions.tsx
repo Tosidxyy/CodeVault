@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { Problem } from '../platforms/types';
 import { getProblemRoute } from '../platforms/leetcode';
-import { readCode } from '../platforms/editor';
+import { loadCode, readCode } from '../platforms/editor';
 import type { CaptureIntent } from '../platforms/editor';
 import type { SolutionDraft, StoredSolution } from '../database/types';
 import { solutionStorage } from '../database/client';
@@ -58,6 +58,17 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
     finally { saving.current = false; if (token === sequence.current) setBusy(false); }
   }
 
+  async function load(solution: StoredSolution) {
+    if (busy || saving.current) return;
+    const token = ++sequence.current;
+    saving.current = true; setBusy(true); setError(''); setMessage('');
+    try {
+      await loadCode(problem, solution);
+      if (token === sequence.current) setMessage(`已加载：${solution.name}。可在编辑器按 Ctrl+Z 撤销。`);
+    } catch (e) { if (token === sequence.current) setError((e as Error).message); }
+    finally { saving.current = false; if (token === sequence.current) setBusy(false); }
+  }
+
   return <section className="card solutions" aria-label="我的解法">
     <strong>我的解法</strong>
     <button className="retry" disabled={busy} onClick={() => void capture()}>{draft ? '重新读取代码' : '读取当前代码'}</button>
@@ -78,6 +89,8 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
         <pre>{solution.code}</pre>
         {solution.note && <p className="solution-note">{solution.note}</p>}
         <a href={solution.sourceUrl} target="_blank" rel="noreferrer">查看来源</a>
+        <button className="retry" disabled={busy} onClick={() => void load(solution)}>加载到编辑器</button>
+        <p className="muted">将替换当前代码；可在编辑器按 Ctrl+Z 撤销。</p>
       </details></li>)}</ul> : <p className="muted">暂无解法。读取代码后，命名并保存到本机。</p>}
   </section>;
 }

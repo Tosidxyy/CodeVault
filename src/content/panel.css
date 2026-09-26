@@ -42,3 +42,4 @@ footer { margin-top: 18px; color: #666; font-size: 12px; }
 .solution-list pre { max-height: 180px; overflow: auto; padding: 8px; border-radius: 8px; background: #fff; font: 12px/1.5 Consolas, monospace; }
 .solution-list a { color: #444; font-size: 12px; }
 .solution-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+.solution-list .retry { display: block; }
