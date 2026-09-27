@@ -1,3 +1,4 @@
+import { openCurrentProblem } from './helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
@@ -46,7 +47,7 @@ test('bookmarks persist in extension IDB, deduplicate, rollback failures and sur
       return route.fulfill({ contentType: 'text/html; charset=utf-8', body: '<h1>Storage fixture</h1>' });
     });
     await page.goto(problem.url);
-    await page.getByRole('button', { name: '展开 CodeVault' }).click();
+    await openCurrentProblem(page);
     await page.getByRole('button', { name: '收藏题目', exact: true }).waitFor();
     // Wait for the asynchronous saved-state read to enable the control.
     await page.getByRole('button', { name: '收藏题目', exact: true }).click();
@@ -63,7 +64,7 @@ test('bookmarks persist in extension IDB, deduplicate, rollback failures and sur
     assert.equal(await page.evaluate(async () => (await indexedDB.databases()).some((db) => db.name === 'codevault')), false);
     assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).some((db) => db.name === 'codevault')), true);
     await page.reload();
-    await page.getByRole('button', { name: '展开 CodeVault' }).click();
+    await openCurrentProblem(page);
     await page.getByText('已收藏 · 保存在本机', { exact: true }).waitFor();
 
     // Concurrent saves must keep a single row and the original creation time.
@@ -79,7 +80,7 @@ test('bookmarks persist in extension IDB, deduplicate, rollback failures and sur
       IDBDatabase.prototype.transaction = function () { throw new DOMException('Test read failure', 'InvalidStateError'); };
     });
     await page.getByRole('button', { name: '关闭面板' }).click();
-    await page.getByRole('button', { name: '展开 CodeVault' }).click();
+    await openCurrentProblem(page);
     await page.getByRole('button', { name: '重试读取收藏' }).waitFor();
     await worker.evaluate(() => { IDBDatabase.prototype.transaction = globalThis.originalTransaction; });
     await page.getByRole('button', { name: '重试读取收藏' }).click();

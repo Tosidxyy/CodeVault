@@ -1,3 +1,4 @@
+import { openCurrentProblem } from './helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -42,7 +43,7 @@ test('problem panel handles metadata, SPA navigation, stale requests, failures a
       await route.fulfill({ json: { data: { question } } }).catch(() => {});
     });
     await page.goto('https://leetcode.cn/problemset/');
-    await page.getByRole('button', { name: '展开 CodeVault' }).click();
+    await openCurrentProblem(page);
     await page.getByText('打开一道 LeetCode 题目，即可查看题目信息。').waitFor();
     assert.equal(requests.length, 0);
     const navigate = (path) => page.evaluate((next) => history.pushState({}, '', next), path);
@@ -86,7 +87,7 @@ test('problem panel handles metadata, SPA navigation, stale requests, failures a
     assert.equal(await page.locator('.problem h3').count(), 0);
 
     await page.goto('https://leetcode.com/problems/two-sum/');
-    await page.getByRole('button', { name: '展开 CodeVault' }).click();
+    await openCurrentProblem(page);
     await page.getByRole('link', { name: 'Two Sum', exact: true }).waitFor();
     assert.deepEqual(await page.locator('.tag').allTextContents(), ['Array', 'Hash Table']);
     assert.deepEqual(errors, []);

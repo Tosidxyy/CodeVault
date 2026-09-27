@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { openCurrentProblem } from '../tests/helpers.mjs';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
@@ -23,11 +24,11 @@ try {
       if (isMetadataRequest(request)) console.log(`${host}: metadata request failed: ${request.failure()?.errorText}`);
     });
     await page.goto(`https://${host}/problems/two-sum/description/`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await page.getByRole('button', { name: '展开 CodeVault' }).click();
+    await openCurrentProblem(page);
     const panel = page.locator('#codevault-root');
     try {
       await panel.getByRole('link', { name: title, exact: true }).waitFor({ timeout: 15000 });
-      assert.equal(await panel.locator('.difficulty').innerText(), '简单');
+      assert.equal(await panel.locator('.problem .difficulty').innerText(), '简单');
       assert.ok(await panel.locator('.tag').count() >= 2);
       console.log(`${host}: title, canonical URL, difficulty and tags loaded`);
       assert.equal(await panel.getByRole('link', { name: title, exact: true }).getAttribute('href'), `https://${host}/problems/two-sum/`);

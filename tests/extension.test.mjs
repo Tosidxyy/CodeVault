@@ -64,7 +64,7 @@ test('extension loads; popup renders; panel opens without changing host styles',
     await popup.getByText('CodeVault v0.1.0', { exact: false }).waitFor();
     await page.route('https://leetcode.com/**', (route) => route.fulfill({ contentType: 'text/html', body: '<h1>International site fixture</h1>' }));
     await page.goto('https://leetcode.com/problems/two-sum/');
-    await page.getByRole('button', { name: '展开 CodeVault' }).waitFor();
+    await page.locator('.launcher').waitFor();
     await page.route('https://example.com/**', (route) => route.fulfill({ contentType: 'text/html', body: '<h1>Unrelated site</h1>' }));
     await page.goto('https://example.com/');
     assert.equal(await page.locator('#codevault-root').count(), 0);

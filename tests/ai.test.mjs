@@ -1,3 +1,4 @@
+import { openCurrentProblem } from './helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { resolve } from 'node:path';
@@ -39,6 +40,7 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
     const base = `chrome-extension://${new URL(worker.url()).host}`;
+    await worker.evaluate(async () => { for (let i = 0; i < 250; i++) { if (globalThis.chrome?.permissions) return; await new Promise((r) => setTimeout(r, 20)); } throw new Error('Extension worker did not initialize'); });
     // Headless test doubles for the native permission prompt and external API only.
     await worker.evaluate(() => {
       globalThis.fixture = { allowed: true, requests: [], mode: 'success', aborted: 0 };
@@ -76,7 +78,7 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     await page.route('https://leetcode.cn/**', (route) => new URL(route.request().url()).pathname === '/graphql/'
       ? route.fulfill({ json: { data: { question: { questionId: '1', titleSlug: 'two-sum', title: 'Two Sum', difficulty: 'Easy', topicTags: [] } } } })
       : route.fulfill({ contentType: 'text/html', body: '<div id="editor" class="monaco-editor" style="width:600px;height:300px">Editor</div>' }));
-    await page.goto(problem.url); await page.getByRole('button', { name: '展开 CodeVault' }).click();
+    await page.goto(problem.url); await openCurrentProblem(page);
     const button = (name) => page.getByRole('button', { name, exact: true });
     await button('读取待分析代码').click();
     await page.getByRole('textbox', { name: '待分析代码' }).waitFor();
@@ -108,9 +110,9 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     await worker.evaluate(async () => { for (let i = 0; i < 100; i++) { if (globalThis.fixture.requests.length === 4) return; await new Promise((r) => setTimeout(r, 20)); } throw new Error('Request did not start'); });
     await page.evaluate(() => history.pushState({}, '', '/problemset/'));
     await page.getByText('打开一道 LeetCode 题目，即可查看题目信息。', { exact: true }).waitFor();
-    assert.equal(await worker.evaluate(() => globalThis.fixture.aborted), 2);
+    await worker.evaluate(async () => { for (let i = 0; i < 100; i++) { if (globalThis.fixture.aborted === 2) return; await new Promise((r) => setTimeout(r, 20)); } throw new Error('Route change did not abort request'); });
     assert.equal(await page.getByLabel('AI 分析结果').count(), 0);
-    await page.goto(problem.url); await button('展开 CodeVault').click();
+    await page.goto(problem.url); await openCurrentProblem(page);
     await options.getByRole('button', { name: '清除 AI 配置' }).click();
     await options.getByText('AI 配置和 API Key 已清除。', { exact: true }).waitFor();
     assert.equal((await send('status')).data, null);

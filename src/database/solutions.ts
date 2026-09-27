@@ -64,7 +64,7 @@ export async function saveSolution(problem: Problem, draft: SolutionDraft): Prom
         solutions.add(result);
         const parent = problems.get(problem.id);
         parent.onsuccess = () => {
-          try { if (!parent.result) problems.add({ ...problem, createdAt: now, updatedAt: now }); }
+          try { if (!parent.result) problems.add({ ...problem, favoriteAt: now, lastOpenedAt: null, createdAt: now, updatedAt: now }); }
           catch { tx.abort(); }
         };
       } catch { tx.abort(); }

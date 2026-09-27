@@ -1,3 +1,4 @@
+import { openCurrentProblem } from './helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { resolve } from 'node:path';
@@ -35,7 +36,7 @@ test('solution management persists metadata, confirms deletion and rejects stale
       : route.fulfill({ contentType: 'text/html', body: '<h1>Host page intact</h1>' }));
     const open = async (name) => {
       await page.goto(problem.url);
-      await page.getByRole('button', { name: '展开 CodeVault' }).click();
+      await openCurrentProblem(page);
       await page.locator('summary').filter({ hasText: name }).click();
     };
     const button = (name) => page.getByRole('button', { name, exact: true });
@@ -101,4 +102,3 @@ test('solution management persists metadata, confirms deletion and rejects stale
     await page.screenshot({ path: resolve('test-results/manage-solutions.png') });
   } finally { await context.close(); }
 });
-

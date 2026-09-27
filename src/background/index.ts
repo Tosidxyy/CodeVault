@@ -1,4 +1,6 @@
-import { getProblem, listProblems, saveProblem } from '../database/problems';
+import { getProblem, listProblems, saveProblem, visitProblem } from '../database/problems';
+import { listLibrary } from '../database/library';
+import './navigation';
 import '../ai/background';
 import { validateProblem, validProblemId, validateSolution, validSolutionTarget, validateMetadata } from '../database/validation';
 import { listSolutions, saveSolution, changeSolution, SolutionConflictError } from '../database/solutions';
@@ -6,7 +8,7 @@ import type { StorageResponse } from '../database/types';
 import { getNote, saveNote, NoteConflictError } from '../database/notes';
 import { validateNoteImages } from '../database/noteImages';
 
-function trustedSender(sender: chrome.runtime.MessageSender): boolean {
+export function trustedSender(sender: chrome.runtime.MessageSender): boolean {
   if (sender.id !== chrome.runtime.id || !sender.url) return false;
   if (sender.url.startsWith(chrome.runtime.getURL(''))) return true;
   try {
@@ -19,6 +21,11 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
   if (!trustedSender(sender)) return { ok: false, error: '不支持的请求来源。' };
   try {
     switch (message.action) {
+      case 'library.list':
+        return { ok: true, data: await listLibrary() };
+      case 'problems.visit':
+        if (!validProblemId(message.id)) return { ok: false, error: '题目ID无效。' };
+        return { ok: true, data: await visitProblem(message.id) };
       case 'notes.get':
         if (!validProblemId(message.problemId)) return { ok: false, error: '题目ID无效。' };
         return { ok: true, data: await getNote(message.problemId) };

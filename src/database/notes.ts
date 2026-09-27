@@ -38,7 +38,7 @@ export async function saveNote(problem: Problem, markdown: string, revision: num
         const problems = tx.objectStore('problems');
         const parent = problems.get(problem.id);
         parent.onsuccess = () => {
-          try { if (!parent.result) problems.add({ ...problem, createdAt: now, updatedAt: now }); }
+          try { if (!parent.result) problems.add({ ...problem, favoriteAt: now, lastOpenedAt: null, createdAt: now, updatedAt: now }); }
           catch { tx.abort(); }
         };
       } catch { tx.abort(); }

@@ -1,3 +1,4 @@
+import { openCurrentProblem } from './helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
@@ -43,7 +44,7 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
     await popup.getByRole('link', { name: problem.title, exact: true }).waitFor();
     const send = (message) => popup.evaluate((value) => chrome.runtime.sendMessage({ channel: 'codevault', ...value }), message);
     assert.equal((await send({ action: 'problems.get', id: problem.id })).data.createdAt, 123);
-    assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === 'codevault').version), 3);
+    assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === 'codevault').version), 4);
 
     const code = Array.from({ length: 150 }, (_, i) => `  line_${i} = "数据"\t# preserved`).join('\r\n') + '\r\n';
     const page = await context.newPage();
@@ -134,7 +135,7 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
     await page.screenshot({ path: resolve(resultDir, 'solutions-panel.png') });
 
     await page.goto('https://leetcode.com/problems/two-sum/');
-    await page.getByRole('button', { name: '展开 CodeVault' }).click();
+    await openCurrentProblem(page);
     await page.getByRole('button', { name: '读取当前代码', exact: true }).click();
     await page.getByLabel('解法名称', { exact: true }).fill('国际站版本');
     await page.getByRole('button', { name: '保存解法', exact: true }).click();

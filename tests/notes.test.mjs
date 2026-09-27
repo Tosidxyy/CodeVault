@@ -1,3 +1,4 @@
+import { openCurrentProblem } from './helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
@@ -31,7 +32,7 @@ test('notes migrate v2, render safe Markdown, persist, isolate routes and protec
     const send = (message) => popup.evaluate((data) => chrome.runtime.sendMessage({ channel: 'codevault', ...data }), message);
     const get = () => send({ action: 'notes.get', problemId: problem.id });
     assert.equal((await get()).data, null);
-    assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === 'codevault').version), 3);
+    assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === 'codevault').version), 4);
     for (const patch of [{ markdown: 'x'.repeat(20001) }, { revision: -1 }, { markdown: null }]) {
       assert.equal((await send({ action: 'notes.save', problem, markdown: 'test', revision: 0, ...patch })).ok, false);
     }
@@ -46,7 +47,7 @@ test('notes migrate v2, render safe Markdown, persist, isolate routes and protec
       return route.fulfill({ contentType: 'text/html', body: '<h1>Host unchanged</h1>' });
     });
     const open = async (url = problem.url) => {
-      await page.goto(url); await page.getByRole('button', { name: '展开 CodeVault' }).click();
+      await page.goto(url); await openCurrentProblem(page);
       await page.getByLabel('Markdown内容').waitFor();
     };
     const button = (name) => page.getByRole('button', { name, exact: true });

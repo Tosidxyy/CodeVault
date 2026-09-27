@@ -51,3 +51,10 @@ footer { margin-top: 18px; color: #666; font-size: 12px; }
 .solution-list a { color: #444; font-size: 12px; }
 .solution-note { white-space: pre-wrap; overflow-wrap: anywhere; }
 .solution-list .retry { display: block; }
+.panel { width:min(400px,calc(100vw - 40px)); border-radius:16px; padding:18px; }
+.panel header h2 { font-size:18px; }
+.nav-button { background:transparent; color:#52525b; padding:6px 8px; border-radius:6px; }
+.nav-button:hover { background:#f4f4f5; }
+.current-problem { margin-top:12px; }
+.back { margin:12px 0 0; }
+.card { background:white; border:1px solid #e9e9ec; }

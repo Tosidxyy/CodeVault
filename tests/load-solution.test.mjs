@@ -1,3 +1,4 @@
+import { openCurrentProblem } from './helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { resolve } from 'node:path';
@@ -48,7 +49,7 @@ test('load replaces only matching current editor, preserves undo and rejects sta
     });
     const open = async (host = 'leetcode.cn') => {
       await page.goto(`https://${host}/problems/two-sum/`);
-      await page.getByRole('button', { name: '展开 CodeVault' }).click();
+      await openCurrentProblem(page);
       await page.locator('summary').filter({ hasText: '已保存版本' }).click();
     };
     const load = () => page.getByRole('button', { name: '加载到编辑器', exact: true }).click();

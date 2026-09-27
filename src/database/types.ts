@@ -3,6 +3,14 @@ import type { Problem } from '../platforms/types';
 export interface StoredProblem extends Problem {
   createdAt: number;
   updatedAt: number;
+  favoriteAt?: number;
+  lastOpenedAt?: number | null;
+}
+
+export interface LibraryProblem extends StoredProblem {
+  solutionNames: string[];
+  solutionCount: number;
+  hasNote: boolean;
 }
 
 export interface SolutionDraft {
@@ -32,6 +40,8 @@ export interface StoredNote {
 }
 
 export type StorageRequest =
+  | { channel: 'codevault'; action: 'library.list' }
+  | { channel: 'codevault'; action: 'problems.visit'; id: string }
   | { channel: 'codevault'; action: 'notes.get'; problemId: string }
   | { channel: 'codevault'; action: 'notes.save'; problem: Problem; markdown: string; revision: number; images?: Record<string, string> }
   | { channel: 'codevault'; action: 'problems.get'; id: string }

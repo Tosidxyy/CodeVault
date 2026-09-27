@@ -8,8 +8,8 @@ import type { CaptureIntent } from '../platforms/editor';
 
 const difficultyLabels = { Easy: '简单', Medium: '中等', Hard: '困难' };
 
-export function ProblemCard({ intent, onIntentHandled }: { intent?: CaptureIntent; onIntentHandled: () => void }) {
-  const { state, retry } = useProblem();
+export function ProblemCard({ current, intent, onIntentHandled }: { current: ReturnType<typeof useProblem>; intent?: CaptureIntent; onIntentHandled: () => void }) {
+  const { state, retry } = current;
   const [revision, setRevision] = useState(0);
   return <><div className="card problem" aria-live="polite" aria-busy={state.status === 'loading'}>
     <strong>当前题目</strong>

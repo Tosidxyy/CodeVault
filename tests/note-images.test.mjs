@@ -1,3 +1,4 @@
+import { openCurrentProblem } from './helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { resolve } from 'node:path';
@@ -31,7 +32,7 @@ test('paste images previews locally, saves atomically, reloads and removes unuse
     await page.route('https://leetcode.cn/**', (route) => new URL(route.request().url()).pathname === '/graphql/'
       ? route.fulfill({ json: { data: { question: { questionId: '1', titleSlug: 'two-sum', title: 'Two Sum', difficulty: 'Easy', topicTags: [] } } } })
       : route.fulfill({ contentType: 'text/html', body: '<h1>Host</h1>' }));
-    const open = async () => { await page.goto('https://leetcode.cn/problems/two-sum/'); await page.getByRole('button', { name: '展开 CodeVault' }).click(); await page.getByLabel('Markdown内容').waitFor(); };
+    const open = async () => { await page.goto('https://leetcode.cn/problems/two-sum/'); await openCurrentProblem(page); await page.getByLabel('Markdown内容').waitFor(); };
     const button = (name) => page.getByRole('button', { name, exact: true });
     const paste = (mode = 'valid') => page.getByLabel('Markdown内容').evaluate((input, mode) => {
       const canvas = document.createElement('canvas'); canvas.width = 240; canvas.height = 80;

@@ -7,7 +7,7 @@
 - Manifest V3 仅声明 LeetCode 国际站与中文站的 content script；为支持站内导航，从两站全部页面注入基础面板。AI 配置按需申请用户指定 HTTPS 域名的可选站点权限。
 - content script 使用 Shadow DOM 和独立 CSS，避免全局样式影响宿主页面；界面支持展开、关闭和 Escape 收起。
 - popup 与 options 可通过 Vite 开发服务器预览。扩展调试使用生产构建后手动重新加载的流程。
-- `platforms` 已实现题目适配器和编辑器读取客户端；`database` 已实现题目与解法持久化。`ai` 已实现配置和分析，`utils` 为预留目录，Markdown 已接入 react-markdown；Zustand、shadcn/ui 尚未接入。
+- `platforms` 已实现题目适配器和编辑器读取客户端；`database` 已实现题目与解法持久化。`ai` 已实现配置和分析，`utils` 为预留目录，Markdown 已接入 react-markdown；Zustand 已在 v0.2 Round 1 接入导航；shadcn/ui 尚未接入。
 
 ## 编辑器读取与加载
 
@@ -205,3 +205,14 @@ Note:
     getCode()
 
     setCode()
+
+## v0.2 Round 1 架构增量（2026-09-27）
+
+- `navigation/store.ts` 使用 Zustand 5 管理 open、home/detail、query、scroll；当前题目仍由唯一 `useProblem` 实例按实际页面 URL 获取，主页和详情共用识别状态。
+- `background/navigation.ts` 经可信 sender 校验处理导航、设置和恢复请求；导航只接受已收藏题目 ID，后台读取目标 URL。使用 tabs API 复用/创建标签页。
+- 导航状态通过后台保存到 `chrome.storage.session`，按标签页隔离；popup 单独保存。串行写入后再跳转，避免新页面读取旧状态。标签页关闭清理状态；重启浏览器或重新加载扩展会清空会话状态，收藏数据不受影响。
+- Manifest 新增 storage 权限及两站限定 host_permissions，用于会话状态和识别可复用标签页，不申请全站 tabs 权限。AI 可选域权限仍按原流程申请。
+- IndexedDB codevault 升至 v4：原地遍历 problems 补齐 favoriteAt（回退 createdAt）与 lastOpenedAt（null）。不删除数据库、不改写已有 Solution/Note 内容；所有自动收藏写入路径补齐新字段。
+- `database/library.ts` 在一致的只读事务中汇总三个表，只向 UI 返回题目元数据、解法名称/数量、笔记存在状态，不把代码或图片传入主页。
+- 收藏记录的实际详情访问更新 lastOpenedAt；保存成功触发题库失效刷新。返回主页复用已挂载列表，不因返回动作重建列表或重置查询。
+- useProblem 关闭时清空临时状态，避免重开面板后旧 ready 状态抢先消费 Hover 指令。

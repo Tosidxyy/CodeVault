@@ -8,12 +8,13 @@ type ProblemState =
   | { status: 'ready'; problem: Problem }
   | { status: 'error'; message: string };
 
-export function useProblem() {
+export function useProblem(enabled = true) {
   const [state, setState] = useState<ProblemState>({ status: 'idle' });
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(() => setAttempt((value) => value + 1), []);
 
   useEffect(() => {
+    if (!enabled) { setState({ status: 'idle' }); return; }
     let currentUrl: string | null | undefined;
     let active: AbortController | undefined;
 
@@ -55,7 +56,7 @@ export function useProblem() {
       window.removeEventListener('popstate', update);
       window.removeEventListener('pageshow', update);
     };
-  }, [attempt]);
+  }, [attempt, enabled]);
 
   return { state, retry };
 }
