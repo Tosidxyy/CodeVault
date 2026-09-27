@@ -236,3 +236,17 @@ Note:
 - `noteSessions.ts` 按标签页与随机编辑会话串行提交快照，使用前一次成功提交的 revision；跨会话仍执行 CAS 冲突检查。读取等待已收到的保存请求。队列仅保留完成状态，避免会话缓存持有大图片。
 - pagehide/visibilitychange 尽力提交最新快照；普通导航和刷新已覆盖，不能保证进程崩溃、强制终止或存储不可用时落盘。失败不自动读取并覆盖本地草稿。
 - 图片粘贴、拖放与文件选择复用既有 PNG 转换器；图片解码期间暂时禁止文字编辑，切题/卸载丢弃未完成的插入。组件只渲染文本输入和本地 data 图片，不注入 HTML、不加载外链图片。
+
+## v0.2 Round 4 架构增量（2026-09-28）
+
+- `ai/types.ts` 集中声明 provider、固定端点和模型列表；后台严格验证预设与地址/模型匹配，防止预设名与实际请求目的地不一致。自定义接口继续要求无凭据、查询参数和片段的 HTTPS Chat Completions 地址。
+- 配置库保持 codevault-settings v1，旧记录读取时补充 provider=custom，保存新配置时写入 provider。无需重建数据库，不触碰 codevault v5 的题目/解法/笔记。
+- provider 共享有界响应读取与固定错误消息；OpenAI/DeepSeek 使用 Bearer + Chat Completions，Claude 使用 x-api-key、anthropic-version 与 Messages，读取 text 内容块。DeepSeek 预设关闭 thinking；Claude 分析上限4096 tokens。
+- 连接测试仅允许 options.html 调用。新配置先校验并确认域名权限；已保存配置以 revision 引用，密钥不返回 UI。测试仅发送 Reply with OK.，输出上限32 tokens，25秒 AbortController 超时。保存/清除配置会取消在途请求；测试不写入配置。测试期间禁用配置控件以避免旧结果覆盖新输入。
+- 测试成功要求 HTTP 成功、有效 JSON 与非空文本；网络/鉴权/额度/超时错误有固定反馈，不转发服务商原始错误体，响应不超过512KB并隐藏密钥。
+
+预设与协议依据（2026-09-28 核对，模型可用性仍由服务商及账户权限决定）：
+
+- [DeepSeek Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/)：deepseek-flash、deepseek-v4-pro。
+- [OpenAI GPT-4.1 mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini)、[GPT-4.1](https://developers.openai.com/api/docs/models/gpt-4.1)、[Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)：测试使用 max_completion_tokens。
+- [Claude 模型](https://platform.claude.com/docs/en/models/overview)、[Messages](https://platform.claude.com/docs/en/api/messages/create)：claude-haiku-4-5-20251001、claude-sonnet-5；使用 max_tokens。

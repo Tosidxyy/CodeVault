@@ -17,8 +17,12 @@ async function configTransaction(write: boolean, value?: AiConfig | null): Promi
     });
   } finally { db.close(); }
 }
-export const getConfig = () => configTransaction(false);
+// Legacy configurations keep their exact endpoint, model, key and revision.
+export const getConfig = async () => {
+  const value = await configTransaction(false);
+  return value ? { ...value, provider: value.provider ?? 'custom' as const } : null;
+};
 export const setConfig = (value: AiConfig | null) => configTransaction(true, value);
 export function publicConfig(value: AiConfig | null): AiStatus | null {
-  return value ? { endpoint: value.endpoint, model: value.model, revision: value.revision } : null;
+  return value ? { provider: value.provider, endpoint: value.endpoint, model: value.model, revision: value.revision } : null;
 }

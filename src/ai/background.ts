@@ -1,7 +1,7 @@
 import { getConfig, publicConfig, setConfig } from './config';
 import { permissionOrigin, validateConfig } from './types';
 import { validateProblem } from '../database/validation';
-import { analyzeCode } from './provider';
+import { analyzeCode, testConnection } from './provider';
 
 function trusted(sender?: chrome.runtime.MessageSender): boolean {
   if (sender?.id !== chrome.runtime.id || !sender.url) return false;
@@ -17,6 +17,20 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     if (message.action === 'status') return publicConfig(await getConfig());
     if (message.action === 'options') { await chrome.runtime.openOptionsPage(); return null; }
     if (sender.url !== chrome.runtime.getURL('options.html')) throw new Error('请在扩展设置页修改 AI 配置。');
+    if (message.action === 'test') {
+      const saved = await getConfig();
+      const config = message.config?.savedRevision
+        ? saved && saved.revision === message.config.savedRevision ? saved : null
+        : { ...validateConfig(message.config), revision: 'test' };
+      if (!config) throw new Error('AI 配置已变化，请刷新设置页后重试。');
+      if (!await chrome.permissions.contains({ origins: [permissionOrigin(config.endpoint)] })) throw new Error('未获得接口站点权限。');
+      const controller = new AbortController();
+      active.add(controller);
+      const timer = setTimeout(() => controller.abort(), 25000);
+      try { await testConnection(config, controller.signal); return null; }
+      catch (error) { throw new Error(controller.signal.aborted ? '连接测试已取消或超时，请重试。' : (error as Error).message); }
+      finally { clearTimeout(timer); active.delete(controller); }
+    }
     if (message.action === 'save') {
       const config = validateConfig(message.config);
       if (!await chrome.permissions.contains({ origins: [permissionOrigin(config.endpoint)] })) throw new Error('未获得接口站点权限。');
