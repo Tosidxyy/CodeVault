@@ -63,3 +63,13 @@ footer { margin-top: 18px; color: #666; font-size: 12px; }
 .solutions [role=alertdialog] { margin:12px 0; padding:12px; border:1px solid #e5c677; border-radius:10px; background:#fffaf0; }
 .solution-list summary { font-weight:600; padding:6px 0; }
 .load-toast { padding:8px 10px; color:#176138; background:#eefaf2; border:1px solid #cde8d6; border-radius:8px; }
+.block-note { padding:14px; }
+.note-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.note-heading [role=status] { font-size:11px; color:#6b7280; }
+.note-blocks { margin-top:12px; }
+.note-text { width:100%; display:block; border:1px solid transparent; border-radius:8px; padding:8px; margin:4px 0; font:14px/1.7 Arial,"Microsoft YaHei",sans-serif; color:#262626; background:#fafafa; resize:vertical; min-height:64px; }
+.note-text:focus { outline:1px solid #93b5ed; background:white; }
+.note-blocks figure { margin:10px 0; }
+.note-blocks img { display:block; max-width:100%; height:auto; border-radius:8px; }
+.block-note .secondary { border:0; background:transparent; color:#52525b; padding:5px 8px; font:inherit; font-size:12px; }
+.block-note [role=alert] { color:#b91c1c; }

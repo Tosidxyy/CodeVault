@@ -5,6 +5,8 @@ for (const entry of ['content', 'background', 'editor']) {
   await build({
     configFile: false,
     publicDir: false,
+    // Service workers have no document; prefer libraries' worker exports.
+    resolve: entry === 'background' ? { conditions: ['worker', 'module', 'production'] } : undefined,
     define: { 'process.env.NODE_ENV': JSON.stringify('production') },
     build: {
       target: 'chrome120',

@@ -15,6 +15,7 @@
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "mdast-util-from-markdown": "2.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "10.1.0",

@@ -225,3 +225,14 @@ Note:
 - Monaco `prepare-load` 返回原始代码及一次性票据；适配器比较换行归一后的代码，遇到非空不同内容等待 UI 确认。票据有效期由三秒延长为两分钟，最多十六个；每次实际 load 消息仍有三秒截止时间。确认后复用原票据核对模型、版本、内容、语言、URL，不重新采样后悄悄覆盖新修改。
 - 取消或卸载详情会结束确认等待，阻止继续写入；成功后保留原有可撤销 executeEdits 流程。
 - 新回归覆盖文章捕获、中文/国际站来源、未知语言、并发默认名称和重试；加载回归增加取消确认、确认期间继续编辑保护，导航回归增加非题目页 SPA 切题。
+
+## v0.2 Round 3 架构增量（2026-09-27）
+
+- IndexedDB v5 在原升级事务中遍历 notes，写入 blocks 和 legacy 原文/附件备份；保留原 problemId、revision、updatedAt，不清库、不重写解法。新笔记直接使用块结构。
+- `NoteBlock` 为稳定 UUID 标识的 text/content 或 image/assetId；images 仍为 UUID→PNG data URL。`noteBlocks.ts` 校验类型、ID、总文字量和附件引用；保存只保留当前块引用的附件，legacy 备份不参与清理。
+- 迁移使用 `mdast-util-from-markdown` 的语法树，避免正则剥离 Markdown 丢失段落与代码。后台构建显式使用 worker 导出条件，避免实体解码库的 DOM 版本在 Service Worker 中引用 document。
+- `notes.saveBlocks` 继续做 sender、来源、版本和大小检查，与自动收藏在一个 IDB 事务提交。旧 notes.save 消息保留兼容转换，新 UI 不再发送 Markdown。
+- `noteDraft.ts` 按题目管理页面内草稿、750ms 防抖和保存状态；卸载主动 flush，未保存/失败草稿可在同一页面重新打开。成功且不再使用的草稿释放，避免长期持有图片。
+- `noteSessions.ts` 按标签页与随机编辑会话串行提交快照，使用前一次成功提交的 revision；跨会话仍执行 CAS 冲突检查。读取等待已收到的保存请求。队列仅保留完成状态，避免会话缓存持有大图片。
+- pagehide/visibilitychange 尽力提交最新快照；普通导航和刷新已覆盖，不能保证进程崩溃、强制终止或存储不可用时落盘。失败不自动读取并覆盖本地草稿。
+- 图片粘贴、拖放与文件选择复用既有 PNG 转换器；图片解码期间暂时禁止文字编辑，切题/卸载丢弃未完成的插入。组件只渲染文本输入和本地 data 图片，不注入 HTML、不加载外链图片。

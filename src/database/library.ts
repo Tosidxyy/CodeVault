@@ -12,7 +12,7 @@ export async function listLibrary(): Promise<LibraryProblem[]> {
     tx.oncomplete = () => {
       const names = new Map<string, string[]>();
       for (const row of solutions.result as StoredSolution[]) names.set(row.problemId, [...(names.get(row.problemId) ?? []), row.name]);
-      const noted = new Set((notes.result as StoredNote[]).filter((row) => row.markdown.trim() || Object.keys(row.images ?? {}).length).map((row) => row.problemId));
+      const noted = new Set((notes.result as StoredNote[]).filter((row) => row.blocks.some((block) => block.type === 'image' || block.content.trim())).map((row) => row.problemId));
       resolve((problems.result as StoredProblem[]).map((row) => ({ ...row, solutionNames: names.get(row.id) ?? [], solutionCount: names.get(row.id)?.length ?? 0, hasNote: noted.has(row.id) }))
         .sort((a, b) => (b.favoriteAt ?? b.createdAt) - (a.favoriteAt ?? a.createdAt)));
     };

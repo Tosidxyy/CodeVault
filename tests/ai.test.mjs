@@ -40,7 +40,8 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
     const base = `chrome-extension://${new URL(worker.url()).host}`;
-    await worker.evaluate(async () => { for (let i = 0; i < 250; i++) { if (globalThis.chrome?.permissions) return; await new Promise((r) => setTimeout(r, 20)); } throw new Error('Extension worker did not initialize'); });
+    for (let i = 0; i < 250 && !await worker.evaluate(() => !!globalThis.chrome?.permissions); i++) await new Promise((resolve) => setTimeout(resolve, 20));
+    assert.equal(await worker.evaluate(() => !!globalThis.chrome?.permissions), true);
     // Headless test doubles for the native permission prompt and external API only.
     await worker.evaluate(() => {
       globalThis.fixture = { allowed: true, requests: [], mode: 'success', aborted: 0 };

@@ -1,6 +1,7 @@
 import { openDatabase } from './problems';
 import type { Problem } from '../platforms/types';
-import type { StoredNote } from './types';
+import { migrateMarkdown } from './noteBlocks';
+import type { NoteBlock, StoredNote } from './types';
 
 export class NoteConflictError extends Error {}
 
@@ -14,7 +15,11 @@ export async function getNote(problemId: string): Promise<StoredNote | null> {
   });
 }
 
-export async function saveNote(problem: Problem, markdown: string, revision: number, images: Record<string, string>): Promise<StoredNote> {
+export function saveNote(problem: Problem, markdown: string, revision: number, images: Record<string, string>): Promise<StoredNote> {
+  return saveBlocks(problem, migrateMarkdown(markdown, images), revision, images, markdown);
+}
+
+export async function saveBlocks(problem: Problem, blocks: NoteBlock[], revision: number, images: Record<string, string>, markdown?: string): Promise<StoredNote> {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(['notes', 'problems'], 'readwrite');
@@ -29,11 +34,12 @@ export async function saveNote(problem: Problem, markdown: string, revision: num
         const previous = request.result as StoredNote | undefined;
         if ((previous?.revision ?? 0) !== revision) {
           // A retry after a lost response may safely return the identical saved text.
-          if (previous?.markdown === markdown && JSON.stringify(previous.images ?? {}) === JSON.stringify(images)) { result = previous; return; }
+          if (previous && (markdown === undefined ? JSON.stringify(previous?.blocks) === JSON.stringify(blocks) : previous?.markdown === markdown) && JSON.stringify(previous.images ?? {}) === JSON.stringify(images)) { result = previous; return; }
           conflict = true; tx.abort(); return;
         }
         const now = Math.max(Date.now(), (previous?.updatedAt ?? 0) + 1);
-        result = { problemId: problem.id, markdown, images, revision: revision + 1, updatedAt: now };
+        result = { ...previous, problemId: problem.id, blocks, markdown: markdown ?? previous?.markdown ?? '', images, revision: revision + 1, updatedAt: now };
+        if (markdown !== undefined && !result.legacy) result.legacy = { markdown, images };
         notes.put(result);
         const problems = tx.objectStore('problems');
         const parent = problems.get(problem.id);

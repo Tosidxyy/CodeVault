@@ -1,3 +1,4 @@
+import { migrateMarkdown } from './noteBlocks';
 import type { Problem } from '../platforms/types';
 import type { StoredProblem } from './types';
 
@@ -6,7 +7,7 @@ let connection: Promise<IDBDatabase> | undefined;
 export function openDatabase(): Promise<IDBDatabase> {
   if (connection) return connection;
   connection = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open('codevault', 4);
+    const request = indexedDB.open('codevault', 5);
     let blocked = false;
     request.onupgradeneeded = (event) => {
       if (event.oldVersion < 1) {
@@ -18,6 +19,16 @@ export function openDatabase(): Promise<IDBDatabase> {
         store.createIndex('problemId', 'problemId');
       }
       if (event.oldVersion < 3) request.result.createObjectStore('notes', { keyPath: 'problemId' });
+      if (event.oldVersion < 5) {
+        const cursor = request.transaction!.objectStore('notes').openCursor();
+        cursor.onsuccess = () => {
+          const row = cursor.result;
+          if (!row) return;
+          const note = row.value;
+          if (!note.blocks) row.update({ ...note, blocks: migrateMarkdown(note.markdown ?? '', note.images ?? {}), legacy: { markdown: note.markdown ?? '', images: note.images ?? {} } });
+          row.continue();
+        };
+      }
       if (event.oldVersion < 4) {
         const cursor = request.transaction!.objectStore('problems').openCursor();
         cursor.onsuccess = () => {

@@ -1,3 +1,6 @@
+import { validateBlocks } from '../database/noteBlocks';
+import { imageIdPattern } from '../database/noteImages';
+import { saveNoteSession, waitNoteSaves } from '../database/noteSessions';
 import { getProblem, listProblems, saveProblem, visitProblem } from '../database/problems';
 import { listLibrary } from '../database/library';
 import './navigation';
@@ -28,7 +31,19 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
         return { ok: true, data: await visitProblem(message.id) };
       case 'notes.get':
         if (!validProblemId(message.problemId)) return { ok: false, error: '题目ID无效。' };
+        await waitNoteSaves(message.problemId);
         return { ok: true, data: await getNote(message.problemId) };
+      case 'notes.saveBlocks': {
+        let problem, document;
+        try {
+          problem = validateProblem(message.problem);
+          document = validateBlocks(message.blocks, message.images);
+          if (!Number.isSafeInteger(message.revision) || (message.revision as number) < 0 || (message.revision as number) >= Number.MAX_SAFE_INTEGER || typeof message.sessionId !== 'string' || !imageIdPattern.test(message.sessionId)) throw new Error('笔记版本信息无效。');
+        } catch (error) { return { ok: false, error: (error as Error).message }; }
+        if (!sender.url?.startsWith(chrome.runtime.getURL('')) && new URL(sender.url!).origin !== new URL(problem.url).origin) return { ok: false, error: '题目来源不匹配。' };
+        const key = `${sender.tab?.id ?? sender.url}:${message.sessionId}`;
+        return { ok: true, data: await saveNoteSession(key, problem, document.blocks, document.images, message.revision as number) };
+      }
       case 'notes.save': {
         let problem;
         try { problem = validateProblem(message.problem); }

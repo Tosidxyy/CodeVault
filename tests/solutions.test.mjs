@@ -45,7 +45,7 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
     await popup.getByRole('link', { name: problem.title, exact: true }).waitFor();
     const send = (message) => popup.evaluate((value) => chrome.runtime.sendMessage({ channel: 'codevault', ...value }), message);
     assert.equal((await send({ action: 'problems.get', id: problem.id })).data.createdAt, 123);
-    assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === 'codevault').version), 4);
+    assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === 'codevault').version), 5);
 
     const code = Array.from({ length: 150 }, (_, i) => `  line_${i} = "数据"\t# preserved`).join('\r\n') + '\r\n';
     const page = await context.newPage();
