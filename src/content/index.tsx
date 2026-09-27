@@ -1,3 +1,4 @@
+import { getProblemRoute } from '../platforms/leetcode';
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import styles from './panel.css?inline';
@@ -17,7 +18,7 @@ function App() {
   const [error, setError] = useState('');
   const [intent, setIntent] = useState<CaptureIntent>();
   const current = useProblem(open);
-  const lastRoute = useRef<string | undefined>(undefined);
+  const lastRoute = useRef<string | undefined>(getProblemRoute(location.href)?.url ?? location.href);
   const change = (patch: Partial<NavigationState>) => {
     useNavigation.setState(patch);
     void persistNavigation().catch((reason: Error) => setError(reason.message));
@@ -35,6 +36,7 @@ function App() {
   useEffect(() => {
     if (route && lastRoute.current && route !== lastRoute.current) change({ view: 'detail' });
     if (route) lastRoute.current = route;
+    else if (open) lastRoute.current = location.href;
   }, [route]);
   const problemId = current.state.status === 'ready' ? current.state.problem.id : undefined;
   useEffect(() => {

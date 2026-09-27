@@ -82,5 +82,9 @@ test('v3 library migration, search, visits, navigation restore and popup tab reu
     await page.getByRole('button', { name: '返回题库', exact: false }).click();
     await page.getByRole('searchbox').fill('');
     await page.screenshot({ path: 'test-results/library-v02.png' });
+    await page.goto('https://leetcode.cn/problemset/');
+    await page.getByRole('searchbox').waitFor();
+    await page.evaluate(() => history.pushState({}, '', '/problems/problem-4/'));
+    await page.locator('.problem h3').getByText('题目 4', { exact: true }).waitFor();
   } finally { await context.close(); }
 });

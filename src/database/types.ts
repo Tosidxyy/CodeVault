@@ -27,6 +27,7 @@ export interface StoredSolution extends SolutionDraft {
   problemId: string;
   createdAt: number;
   revision?: number;
+  updatedAt?: number;
 }
 
 export type SolutionMetadata = Pick<SolutionDraft, 'name' | 'note' | 'source' | 'sourceUrl'>;

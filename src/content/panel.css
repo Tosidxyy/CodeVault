@@ -58,3 +58,8 @@ footer { margin-top: 18px; color: #666; font-size: 12px; }
 .current-problem { margin-top:12px; }
 .back { margin:12px 0 0; }
 .card { background:white; border:1px solid #e9e9ec; }
+.solution-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.solution-row .secondary { margin:0; flex-shrink:0; }
+.solutions [role=alertdialog] { margin:12px 0; padding:12px; border:1px solid #e5c677; border-radius:10px; background:#fffaf0; }
+.solution-list summary { font-weight:600; padding:6px 0; }
+.load-toast { padding:8px 10px; color:#176138; background:#eefaf2; border:1px solid #cde8d6; border-radius:8px; }

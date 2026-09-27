@@ -21,7 +21,7 @@ export async function changeSolution(problemId: string, id: string, revision: nu
           conflict = true; tx.abort(); return;
         }
         if (metadata) {
-          result = { ...current, ...metadata, revision: revision + 1 };
+          result = { ...current, ...metadata, revision: revision + 1, updatedAt: Date.now() };
           store.put(result);
         } else store.delete(id);
       } catch { tx.abort(); }
@@ -53,19 +53,27 @@ export async function saveSolution(problem: Problem, draft: SolutionDraft): Prom
       try {
         if (existing.result) {
           const saved = existing.result as StoredSolution;
-          if (saved.problemId !== problem.id || Object.keys(draft).some((key) => draft[key as keyof SolutionDraft] !== saved[key as keyof SolutionDraft])) {
+          if (saved.problemId !== problem.id || Object.keys(draft).some((key) => !(key === 'name' && !draft.name) && draft[key as keyof SolutionDraft] !== saved[key as keyof SolutionDraft])) {
             tx.abort(); return;
           }
           result = saved; // A retried request must not create a second version.
           return;
         }
-        const now = Date.now();
-        result = { ...draft, problemId: problem.id, createdAt: now };
-        solutions.add(result);
-        const parent = problems.get(problem.id);
-        parent.onsuccess = () => {
-          try { if (!parent.result) problems.add({ ...problem, favoriteAt: now, lastOpenedAt: null, createdAt: now, updatedAt: now }); }
-          catch { tx.abort(); }
+        const siblings = solutions.index('problemId').getAll(problem.id);
+        siblings.onsuccess = () => {
+          try {
+            const names = (siblings.result as StoredSolution[]).map((row) => row.name);
+            let number = names.length + 1;
+            while (names.includes(`解法 ${number}`)) number++;
+            const now = Date.now();
+            result = { ...draft, name: draft.name || `解法 ${number}`, problemId: problem.id, createdAt: now, updatedAt: now };
+            solutions.add(result);
+            const parent = problems.get(problem.id);
+            parent.onsuccess = () => {
+              try { if (!parent.result) problems.add({ ...problem, favoriteAt: now, lastOpenedAt: null, createdAt: now, updatedAt: now }); }
+              catch { tx.abort(); }
+            };
+          } catch { tx.abort(); }
         };
       } catch { tx.abort(); }
     };

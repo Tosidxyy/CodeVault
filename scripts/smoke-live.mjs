@@ -37,8 +37,8 @@ try {
       console.log(`${host}: bookmark committed to extension IndexedDB`);
       await page.waitForFunction(() => window.monaco?.editor?.getEditors?.().some((editor) => !editor.getRawOptions().readOnly && editor.getModel()?.getLanguageId() !== 'plaintext' && editor.getModel()?.getValue().trim()), undefined, { timeout: 45000 });
       await panel.getByRole('button', { name: '读取当前代码', exact: true }).click();
-      await panel.getByLabel('代码预览', { exact: true }).waitFor();
-      const captured = await panel.getByLabel('代码预览', { exact: true }).inputValue();
+      await panel.getByLabel('解法名称', { exact: true }).waitFor();
+      const captured = await page.evaluate(() => window.monaco.editor.getEditors().find((editor) => !editor.getRawOptions().readOnly && editor.getModel()?.getLanguageId() !== 'plaintext' && editor.getDomNode()?.getBoundingClientRect().width > 0).getModel().getValue().replace(/\r\n?/g, '\n'));
       assert.ok(captured.trim().length > 0);
       await panel.getByLabel('解法名称', { exact: true }).fill(`实测 ${host}`);
       await panel.getByRole('button', { name: '保存解法', exact: true }).click();
@@ -53,9 +53,10 @@ try {
         editor.pushUndoStop();
         return editor.getModel().getValue();
       });
-      const details = panel.locator('details').filter({ hasText: `实测 ${host}` });
+      const details = panel.locator('.solution-list li').filter({ hasText: `实测 ${host}` });
       await details.locator('summary').click();
       await details.getByRole('button', { name: '加载到编辑器', exact: true }).click();
+      await panel.getByRole('button', { name: '继续加载', exact: true }).click();
       await panel.getByText(`已加载：实测 ${host}。可在编辑器按 Ctrl+Z 撤销。`, { exact: true }).waitFor();
       assert.equal((await page.evaluate(() => window.codevaultTestEditor.getModel().getValue())).replaceAll('\r\n', '\n'), captured);
       await page.evaluate(() => window.codevaultTestEditor.focus());

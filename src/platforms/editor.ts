@@ -3,7 +3,7 @@ import type { Problem } from './types';
 import type { StoredSolution } from '../database/types';
 
 export interface CodeSnapshot { code: string; language: string; sourceUrl: string }
-export interface CaptureIntent { id: string; target: string; problemUrl: string }
+export interface CaptureIntent { id: string; target: string; problemUrl: string; snapshot?: CodeSnapshot }
 
 type BridgeResult = { ok: boolean; url: string; code?: unknown; language?: unknown; ticket?: unknown; loaded?: boolean; error?: string };
 
@@ -35,10 +35,14 @@ export async function readCode(problemUrl: string, target?: string): Promise<Cod
   return { code: result.code, language: result.language, sourceUrl: result.url };
 }
 
-export async function loadCode(problem: Problem, solution: StoredSolution): Promise<void> {
+export async function loadCode(problem: Problem, solution: StoredSolution, confirm: () => Promise<boolean>): Promise<boolean> {
   if (solution.problemId !== problem.id) throw new Error('解法不属于当前题目，未替换代码。');
   const prepared = await requestEditor(problem.url, { type: 'prepare-load', language: solution.language });
   if (typeof prepared.ticket !== 'string' || !/^[\da-f-]{36}$/i.test(prepared.ticket)) throw new Error('编辑器未准备好，请重试。');
+  if (typeof prepared.code !== 'string') throw new Error('无法确认当前编辑器内容，请重试。');
+  const normalize = (code: string) => code.replace(/\r\n?/g, '\n');
+  if (prepared.code.trim() && normalize(prepared.code) !== normalize(solution.code) && !await confirm()) return false;
   const result = await requestEditor(problem.url, { type: 'load', ticket: prepared.ticket, language: solution.language, code: solution.code });
   if (!result.loaded) throw new Error('未能确认加载结果，请检查编辑器。');
+  return true;
 }

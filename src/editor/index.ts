@@ -66,8 +66,8 @@ window.addEventListener('message', (event: MessageEvent) => {
         if (request.language !== language) throw new Error(`语言不匹配：解法为 ${String(request.language).slice(0,40)}，当前为 ${language}。请先在网页切换语言。`);
         if (tickets.size >= 16) tickets.delete(tickets.keys().next().value!);
         const ticket = crypto.randomUUID();
-        tickets.set(ticket, { editor, model, code, language, version: model.getVersionId(), url: location.href, expires: Date.now() + 3000 });
-        payload = { ok: true, ticket, url: location.href };
+        tickets.set(ticket, { editor, model, code, language, version: model.getVersionId(), url: location.href, expires: Date.now() + 120000 });
+        payload = { ok: true, ticket, code, url: location.href };
       } else payload = { ok: true, code, language, url: location.href };
     }
   } catch (error) { payload = { ok: false, error: error instanceof Error ? error.message : '读取代码失败。' }; }

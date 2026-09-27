@@ -11,7 +11,8 @@ const draft = { id: '11111111-1111-4111-8111-111111111111', name: '版本一', l
 
 test('solution validation preserves exact code and rejects empty, oversized or mismatched drafts', () => {
   assert.equal(validateSolution(draft, problem).code, draft.code);
-  for (const patch of [{ id: 'bad' }, { name: ' ' }, { name: 'a'.repeat(101) }, { code: '\n ' }, { code: 'a'.repeat(500001) }, { language: 'plaintext' }, { source: 'unknown' }, { sourceUrl: 'https://leetcode.cn/problems/other/' }, { note: 'a'.repeat(5001) }]) {
+  assert.equal(validateSolution({ ...draft, name: ' ' }, problem).name, '');
+  for (const patch of [{ id: 'bad' }, { name: 'a'.repeat(101) }, { code: '\n ' }, { code: 'a'.repeat(500001) }, { language: 'plaintext' }, { source: 'unknown' }, { sourceUrl: 'https://leetcode.cn/problems/other/' }, { note: 'a'.repeat(5001) }]) {
     assert.throws(() => validateSolution({ ...draft, ...patch }, problem));
   }
 });
@@ -70,8 +71,8 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
     await page.goto(problem.url);
     await page.locator('#code-editor').hover();
     await page.getByRole('button', { name: '🚀 添加至 CodeVault', exact: true }).click();
-    await page.getByLabel('代码预览', { exact: true }).waitFor();
-    assert.equal(await page.getByLabel('代码预览', { exact: true }).inputValue(), code.replaceAll('\r\n', '\n'));
+    await page.getByLabel('解法名称', { exact: true }).waitFor();
+    assert.equal(await page.getByLabel('代码预览', { exact: true }).count(), 0);
     await page.getByLabel('解法名称', { exact: true }).fill('完整代码快照');
     await page.getByLabel('备注（可选）', { exact: true }).fill('保留缩进与换行');
     await page.getByRole('button', { name: '保存解法', exact: true }).click();
@@ -97,8 +98,8 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
     await page.getByRole('button', { name: '关闭面板' }).click();
     await page.locator('#code-editor').hover();
     await page.getByRole('button', { name: '🚀 添加至 CodeVault', exact: true }).click();
-    await page.getByLabel('代码预览', { exact: true }).waitFor();
-    assert.equal(await page.getByLabel('代码预览', { exact: true }).inputValue(), 'class Solution {};\n');
+    await page.getByLabel('解法名称', { exact: true }).waitFor();
+    assert.equal(await page.getByLabel('代码预览', { exact: true }).count(), 0);
     await page.getByRole('button', { name: '取消', exact: true }).click();
     await page.evaluate(() => { window.extraEditor = false; window.fixtureCode = ''; });
     await page.getByRole('button', { name: '读取当前代码', exact: true }).click();

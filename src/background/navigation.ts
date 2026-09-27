@@ -22,7 +22,8 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     if (!problem) throw new Error('Missing problem');
     const state = { ...stateOf(message.state), open: true, view: 'detail' };
     const tabs = await chrome.tabs.query({ url: ['https://leetcode.cn/*', 'https://leetcode.com/*'] });
-    const target = tabs.find((tab) => tab.id === sender.tab?.id) ?? tabs.find((tab) => tab.active) ?? tabs[0] ?? await chrome.tabs.create({ url: 'about:blank' });
+    const currentWindow = await chrome.windows.getLastFocused();
+    const target = tabs.find((tab) => tab.id === sender.tab?.id) ?? tabs.find((tab) => tab.active && tab.windowId === currentWindow.id) ?? tabs.find((tab) => tab.windowId === currentWindow.id) ?? tabs[0] ?? await chrome.tabs.create({ url: 'about:blank' });
     if (target.id === undefined) throw new Error('Missing tab');
     await chrome.storage.session.set({ [key(target.id)]: state });
     if (target.url === problem.url) {

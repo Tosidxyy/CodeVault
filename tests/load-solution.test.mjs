@@ -52,9 +52,32 @@ test('load replaces only matching current editor, preserves undo and rejects sta
       await openCurrentProblem(page);
       await page.locator('summary').filter({ hasText: '已保存版本' }).click();
     };
-    const load = () => page.getByRole('button', { name: '加载到编辑器', exact: true }).click();
+    const clickLoad = () => page.getByRole('button', { name: '加载到编辑器', exact: true }).click();
+    const load = async () => {
+      await clickLoad();
+      await page.waitForFunction(() => {
+        const root = document.querySelector('#codevault-root').shadowRoot;
+        return root.querySelector('[role=alertdialog]') || root.querySelector('.solutions [role=alert]') ||
+          [...root.querySelectorAll('[role=status]')].some((node) => node.textContent.startsWith('已加载')) || location.pathname.includes('/other/');
+      });
+      const confirm = page.getByRole('button', { name: '继续加载', exact: true });
+      if (await confirm.isVisible()) await confirm.click();
+    };
     const state = () => page.evaluate(() => window.fixture);
     await open();
+    await clickLoad();
+    await page.getByRole('alertdialog').waitFor();
+    assert.equal((await state()).edits, 0);
+    await page.getByRole('button', { name: '取消加载' }).click();
+    assert.equal((await state()).code, 'unsaved original\n');
+    await clickLoad();
+    await page.getByRole('alertdialog').waitFor();
+    await page.evaluate(() => { window.fixture.code = 'edit while confirming'; window.fixture.version++; });
+    await page.getByRole('button', { name: '继续加载' }).click();
+    await page.getByRole('alert').filter({ hasText: '编辑器内容已变化' }).waitFor();
+    assert.equal((await state()).code, 'edit while confirming');
+    assert.equal((await state()).edits, 0);
+    await page.evaluate(() => { window.fixture.code = 'unsaved original\n'; window.fixture.version++; });
     await load();
     await page.getByText('已加载：已保存版本。可在编辑器按 Ctrl+Z 撤销。', { exact: true }).waitFor();
     assert.equal((await state()).code, code.replaceAll('\r\n', '\n'));
