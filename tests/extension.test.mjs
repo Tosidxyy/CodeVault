@@ -30,7 +30,7 @@ test('extension loads; popup renders; panel opens without changing host styles',
     const popup = await context.newPage();
     popup.on('pageerror', (error) => errors.push(error.message));
     await popup.goto(`chrome-extension://${extensionId}/popup.html`);
-    await popup.getByRole('heading', { name: '🚀 CodeVault' }).waitFor();
+    await popup.getByRole('heading', { name: 'CodeVault' }).waitFor();
     assert.equal(await popup.getByRole('link', { name: '打开 LeetCode' }).getAttribute('href'), 'https://leetcode.cn/problemset/');
     assert.equal(await popup.locator('main').evaluate((element) => getComputedStyle(element).width), '360px');
 
@@ -47,7 +47,7 @@ test('extension loads; popup renders; panel opens without changing host styles',
     await launcher.click();
     await page.getByRole('region', { name: 'CodeVault 面板' }).waitFor();
     assert.equal(await page.locator('#host-button').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(255, 0, 0)');
-    assert.equal(await page.locator('.launcher').evaluate((element) => getComputedStyle(element).fontSize), '22px');
+    assert.equal(await page.locator('.launcher').evaluate((element) => getComputedStyle(element).fontSize), '17px');
     await mkdir('test-results', { recursive: true });
     await page.screenshot({ path: 'test-results/panel.png' });
     await popup.screenshot({ path: 'test-results/popup.png' });

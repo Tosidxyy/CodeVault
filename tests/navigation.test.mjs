@@ -73,6 +73,15 @@ test('v3 library migration, search, visits, navigation restore and popup tab reu
     await page.waitForURL(rows[1].url);
     await page.locator('.problem h3').getByText('题目 2', { exact: true }).waitFor();
     assert.equal(context.pages().length, count);
+    await page.setViewportSize({ width: 360, height: 640 });
+    const panel = page.getByRole('region', { name: 'CodeVault 面板' });
+    await panel.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+    const bounds = await panel.boundingBox();
+    const back = page.getByRole('button', { name: '返回题库', exact: false });
+    const backBounds = await back.boundingBox();
+    assert.ok(backBounds.y >= bounds.y && backBounds.y + backBounds.height <= bounds.y + bounds.height);
+    assert.equal(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+    await page.screenshot({ path: 'test-results/navigation-mobile-v02.png' });
     await page.getByRole('button', { name: '返回题库', exact: false }).click();
     assert.equal(await page.getByRole('searchbox').inputValue(), '题目 2');
     await page.evaluate(() => history.pushState({}, '', '/problems/problem-3/'));

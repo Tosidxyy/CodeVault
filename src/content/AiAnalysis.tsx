@@ -34,10 +34,10 @@ export function AiAnalysis({ problem }: { problem: Problem }) {
     refresh(); window.addEventListener('codevault-data-saved', refresh);
     return () => { active = false; window.removeEventListener('codevault-data-saved', refresh); };
   }, [problem.id]);
-  async function saveAnalysis() {
+  async function saveAnalysis(confirmed = false) {
     if (lock.current || !complete || !target) return;
     if (getProblemRoute(location.href)?.url !== problem.url) { setError('题目已切换，请重新打开面板。'); return; }
-    if (target.analysis && !confirmSave) { setConfirmSave(true); return; }
+    if (target.analysis && !confirmed) { setConfirmSave(true); return; }
     const token = sequence.current;
     lock.current = true; setBusy(true); setError('');
     try {
@@ -107,7 +107,7 @@ export function AiAnalysis({ problem }: { problem: Problem }) {
     {error && <p role="alert">{error}</p>}
     {message && <p role="status">{message}</p>}
     {result && <><p className="muted">AI 结果仅供学习参考，尚未运行代码验证；结果不会自动保存。</p><div aria-label="AI 分析结果"><AnalysisMarkdown text={result} /></div></>}
-    {complete && target && <button className="secondary" disabled={busy || !!message} onClick={() => void saveAnalysis()}>保存分析</button>}
-    {confirmSave && <div role="alertdialog" aria-label="覆盖分析确认"><p>该解法已有分析，是否替换？</p><button disabled={busy} onClick={() => void saveAnalysis()}>确认替换分析</button><button disabled={busy} onClick={() => setConfirmSave(false)}>取消替换分析</button></div>}
+    {complete && target && <button className="secondary" disabled={busy || !!message || confirmSave} onClick={() => void saveAnalysis()}>保存分析</button>}
+    {confirmSave && <div role="alertdialog" aria-label="覆盖分析确认"><p>该解法已有分析，是否替换？</p><button disabled={busy} onClick={() => void saveAnalysis(true)}>确认替换分析</button><button disabled={busy} onClick={() => setConfirmSave(false)}>取消替换分析</button></div>}
   </section>;
 }

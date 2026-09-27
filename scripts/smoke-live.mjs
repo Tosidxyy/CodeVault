@@ -63,6 +63,19 @@ try {
       await page.keyboard.press('Control+z');
       await page.waitForFunction((text) => window.codevaultTestEditor.getModel().getValue() === text, unsaved);
       console.log(`${host}: saved solution loaded and Ctrl+Z restored unsaved draft`);
+      const note = panel.getByRole('region', { name: '题目笔记', exact: true });
+      await note.getByLabel('笔记文字 1', { exact: true }).fill('实站流程：保存解法后记录思路。');
+      await note.getByRole('status').filter({ hasText: '已保存' }).waitFor();
+      const png = await page.evaluate(() => { const canvas = document.createElement('canvas'); canvas.width = 120; canvas.height = 60; const ctx = canvas.getContext('2d'); ctx.fillStyle = '#ede9fe'; ctx.fillRect(0, 0, 120, 60); ctx.fillStyle = '#4338ca'; ctx.fillText('CodeVault test', 12, 34); return canvas.toDataURL('image/png').split(',')[1]; });
+      await note.getByLabel('选择笔记图片').setInputFiles({ name: 'diagram.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
+      await note.getByAltText('笔记图片').waitFor();
+      await note.getByRole('status').filter({ hasText: '已保存' }).waitFor();
+      await panel.getByRole('button', { name: '返回题库', exact: false }).click();
+      await panel.getByRole('searchbox').fill(title);
+      await panel.getByRole('link', { name: title, exact: true }).click();
+      await note.getByAltText('笔记图片').waitFor();
+      assert.equal(await note.getByLabel('笔记文字 1', { exact: true }).inputValue(), '实站流程：保存解法后记录思路。');
+      console.log(`${host}: note/image autosave and library return/reopen passed`);
     } finally {
       await page.screenshot({ path: `test-results/live-${host}.png` });
     }

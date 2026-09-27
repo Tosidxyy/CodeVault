@@ -1,7 +1,30 @@
 @import "tailwindcss";
+@import "./components/theme.css";
 
 @layer base {
   body { margin: 0; background: #f5f5f5; color: #202020; font-family: Arial, "Microsoft YaHei", sans-serif; }
   button, a { -webkit-tap-highlight-color: transparent; }
   :focus-visible { outline: 2px solid #2563eb; outline-offset: 4px; }
 }
+
+body { background:#f8f9fb; color:var(--cv-text); }
+.popup-shell { width:360px; padding:18px; background:white; }
+.popup-shell header { padding-bottom:10px; border-bottom:1px solid var(--cv-line); }
+.popup-shell header a { padding:7px; border-radius:8px; }
+.popup-shell header a:hover { background:var(--cv-soft); color:var(--cv-accent); }
+.settings-shell { max-width:680px; margin:0 auto; padding:40px 24px; }
+.welcome, .ai-settings { background:white; border:1px solid var(--cv-line); border-radius:14px; padding:24px; }
+.welcome h1 { font-size:24px; margin:10px 0; }
+.welcome p { font-size:14px; line-height:1.8; color:var(--cv-muted); }
+.welcome .eyebrow { font-size:12px; }
+.welcome-help { margin:12px 0; }
+.welcome-link { display:inline-block; font-size:13px; color:var(--cv-accent); padding:8px 12px; background:var(--cv-soft); border-radius:8px; }
+.ai-settings { margin-top:20px; }
+.ai-settings input, .ai-settings select { border-color:#d9dde5; border-radius:8px; background:#fff; min-height:38px; font-size:14px; }
+.ai-settings label, .ai-settings legend { font-size:13px; }
+.ai-settings button { font-size:13px; border:1px solid var(--cv-line); border-radius:8px; background:#fff; color:var(--cv-text); cursor:pointer; }
+.ai-settings button[type=submit] { border-color:#dcd8ff; background:var(--cv-soft); color:#4338ca; }
+.ai-settings button:hover:not(:disabled) { background:#f0f1f5; }
+.ai-settings [role=status] { border-radius:8px; padding:10px; background:#eff8f2; color:#266047; font-size:13px; }
+.ai-settings [role=alert] { font-size:13px; }
+@media (max-width:480px) { .settings-shell { padding:16px; } .welcome, .ai-settings { padding:18px; } }

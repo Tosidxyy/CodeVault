@@ -51,7 +51,7 @@ export function AiSettings() {
     finally { setBusy(false); }
   }
   const inputClass = 'mt-1 block w-full rounded border p-2';
-  return <section className="mt-6 rounded-xl bg-white p-5" aria-label="AI 设置">
+  return <section className="ai-settings" aria-label="AI 设置">
     <h2 className="text-lg font-semibold">AI 设置</h2>
     <p className="mt-2 text-sm text-neutral-600">API Key 仅保存在当前浏览器扩展中，不加密、不云同步、不上传 CodeVault 服务器，默认不包含在数据导出中。分析会发送题目信息与代码给所选服务商。</p>
     <p className="mt-2 text-sm">{saved ? `已配置：${saved.model} · API Key 已保存（不回显）` : '尚未配置 AI。'}</p>

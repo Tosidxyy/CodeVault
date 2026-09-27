@@ -262,3 +262,10 @@ Note:
 - `AnalysisMarkdown` 复用 react-markdown，使用元素白名单和 skipHtml；图片及链接不生成可加载资源，原始 HTML 不渲染。实时结果与已保存分析共用渲染器。
 
 协议参考：[OpenAI Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)、[Claude streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)。本轮自动化使用模拟 SSE，不含真实服务商调用。
+
+## v0.2 Round 6 架构增量（2026-09-28）
+
+- components/theme.css 提供颜色变量与品牌样式；扩展页通过 CSS 引入，content 注入 Shadow Root，保持宿主样式隔离。Brand/Icon 为本地 SVG/文字，无远程资源或新增依赖。
+- 整理 panel.css 的历史覆盖规则，统一表单、列表、Markdown 和图文笔记样式。panel-header 在滚动面板内 sticky，返回动作继续使用现有 Zustand 与会话持久化逻辑。
+- 本轮不改变数据库、Manifest权限或包版本。分析覆盖保存新增显式 confirmed 参数，原按钮在确认期间禁用。
+- 实站 smoke 脚本扩展图文笔记与题库返回闭环；测试图片由临时页面 canvas 生成，仅用于上传路径验证，不代表系统剪贴板验收。
