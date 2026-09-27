@@ -4,7 +4,7 @@ import type { SolutionDraft, SolutionMetadata, StoredSolution } from './types';
 
 export class SolutionConflictError extends Error {}
 
-export async function changeSolution(problemId: string, id: string, revision: number, metadata?: SolutionMetadata): Promise<StoredSolution | null> {
+export async function changeSolution(problemId: string, id: string, revision: number, metadata?: SolutionMetadata, analysis?: string): Promise<StoredSolution | null> {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('solutions', 'readwrite');
@@ -20,7 +20,10 @@ export async function changeSolution(problemId: string, id: string, revision: nu
         if (!current || current.problemId !== problemId || (current.revision ?? 0) !== revision) {
           conflict = true; tx.abort(); return;
         }
-        if (metadata) {
+        if (analysis !== undefined) {
+          result = { ...current, analysis, analysisUpdatedAt: Date.now(), revision: revision + 1, updatedAt: Date.now() };
+          store.put(result);
+        } else if (metadata) {
           result = { ...current, ...metadata, revision: revision + 1, updatedAt: Date.now() };
           store.put(result);
         } else store.delete(id);

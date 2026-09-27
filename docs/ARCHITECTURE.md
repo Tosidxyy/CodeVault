@@ -250,3 +250,15 @@ Note:
 - [DeepSeek Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/)：deepseek-flash、deepseek-v4-pro。
 - [OpenAI GPT-4.1 mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini)、[GPT-4.1](https://developers.openai.com/api/docs/models/gpt-4.1)、[Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)：测试使用 max_completion_tokens。
 - [Claude 模型](https://platform.claude.com/docs/en/models/overview)、[Messages](https://platform.claude.com/docs/en/api/messages/create)：claude-haiku-4-5-20251001、claude-sonnet-5；使用 max_tokens。
+
+## v0.2 Round 5 架构增量（2026-09-28）
+
+- 正式分析通过现有 runtime Port 请求 stream=true；连接测试仍为非流式最小请求。后台发送 progress 快照与最终成功/错误消息；UI 仅最终成功解锁保存。配置变更、Port 断开、切题与关闭面板沿用 AbortController，25秒总超时。
+- `ai/stream.ts` 按 SSE 帧增量解码 UTF-8，兼容 LF/CRLF 和跨 chunk 边界，忽略注释和非文本事件。OpenAI/兼容接口读取 choices[0].delta.content 与 [DONE]；Claude 读取 text_delta/content_block_start，要求 message_stop，忽略 thinking。
+- 流错误、无结束标记、空内容、截断结束原因均报错；总网络响应最多1MiB、分析最多12000字符。API Key 跨文本分片时暂缓显示可能匹配的尾部，完整匹配替换为隐藏标识，不转发服务商原始错误详情。
+- Provider 输出预算统一为1200 tokens，连接测试仍为32 tokens。只有支持 text/event-stream 的接口可用于正式分析，不静默降级成等待完整 JSON。
+- Solution 增加可选 analysis/analysisUpdatedAt，不改对象仓库和索引，数据库维持 v5。旧记录无此字段正常读取。保存分析复用 solutions 的单事务 revision 比较，递增 revision 并保留代码、备注、来源与原创建时间；删除解法同时删除附属分析。
+- `solutions.analysis.save` 校验题目ID、解法UUID、版本及非空有界文本；生成前对传入的解法ID、版本、代码、语言与数据库核对。保存时再次校验版本，防止并发修改、删除、跨题挂载。界面数据事件刷新解法列表与分析对象列表。
+- `AnalysisMarkdown` 复用 react-markdown，使用元素白名单和 skipHtml；图片及链接不生成可加载资源，原始 HTML 不渲染。实时结果与已保存分析共用渲染器。
+
+协议参考：[OpenAI Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)、[Claude streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)。本轮自动化使用模拟 SSE，不含真实服务商调用。

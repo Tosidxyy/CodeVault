@@ -60,6 +60,10 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
         catch (error) { return { ok: false, error: (error as Error).message }; }
         return { ok: true, data: await saveNote(problem, message.markdown, message.revision as number, images) };
       }
+      case 'solutions.analysis.save': {
+        if (!validSolutionTarget(message) || (message.revision as number) >= Number.MAX_SAFE_INTEGER || typeof message.analysis !== 'string' || !message.analysis.trim() || message.analysis.length > 12000) return { ok: false, error: '分析数据或解法版本无效。' };
+        return { ok: true, data: await changeSolution(message.problemId as string, message.id as string, message.revision as number, undefined, message.analysis) };
+      }
       case 'solutions.update':
       case 'solutions.delete': {
         if (!validSolutionTarget(message)) return { ok: false, error: '解法信息无效。' };

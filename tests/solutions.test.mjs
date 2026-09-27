@@ -131,7 +131,7 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
     assert.equal((await send({ action: 'solutions.save', problem: otherProblem, solution: { ...secondDraft, code: 'changed' } })).ok, false);
     assert.deepEqual(errors, []);
     await page.evaluate(() => history.pushState({}, '', '/problems/two-sum/'));
-    await page.getByText('C++版本', { exact: false }).waitFor();
+    await page.getByText('C++版本', { exact: true }).waitFor();
     assert.equal(await page.getByLabel('代码预览', { exact: true }).count(), 0);
     await page.screenshot({ path: resolve(resultDir, 'solutions-panel.png') });
 
@@ -143,6 +143,8 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
     await page.getByText('已保存：国际站版本', { exact: true }).waitFor();
     assert.equal((await send({ action: 'solutions.list', problemId: problem.id })).data.find((row) => row.name === '国际站版本').sourceUrl, 'https://leetcode.com/problems/two-sum/');
 
+    const analysisTarget = (await send({ action: 'solutions.list', problemId: problem.id })).data.find((row) => row.name === '完整代码快照');
+    assert.equal((await send({ action: 'solutions.analysis.save', problemId: problem.id, id: analysisTarget.id, revision: analysisTarget.revision ?? 0, analysis: '### 思路\n离线保留分析' })).ok, true);
     await context.close();
     context = await launch();
     await context.setOffline(true);
@@ -150,6 +152,7 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
     await restored.goto(`chrome-extension://${extensionId}/popup.html`);
     const rows = await restored.evaluate((id) => chrome.runtime.sendMessage({ channel: 'codevault', action: 'solutions.list', problemId: id }), problem.id);
     assert.equal(rows.data.length, 3);
+    assert.equal(rows.data.find((row) => row.name === '完整代码快照').analysis, '### 思路\n离线保留分析');
     assert.equal(rows.data.find((row) => row.name === '完整代码快照').code, code);
   } finally {
     await context?.close();

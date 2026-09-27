@@ -50,7 +50,8 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
         globalThis.fixture.requests.push({ url, body: JSON.parse(options.body), auth: options.headers.Authorization, redirect: options.redirect });
         if (globalThis.fixture.mode === 'pending') return new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => { globalThis.fixture.aborted++; reject(new Error('aborted')); }));
         if (globalThis.fixture.mode === '401') return new Response('private failure', { status: 401 });
-        return Response.json({ choices: [{ message: { content: '思路：哈希表\n复杂度：O(n)\n面试表达：逐项查找\n易错点：重复元素' } }] });
+        if (JSON.parse(options.body).stream) return new Response('data: ' + JSON.stringify({ choices: [{ delta: { content: '### 思路\n哈希表\n### 复杂度\n- 时间：O(n)\n### 关键点\n逐项查找\n### 易错点\n重复元素' } }] }) + '\n\ndata: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
+        return Response.json({ choices: [{ message: { content: 'OK' } }] });
       };
     });
     const options = await context.newPage();
@@ -92,7 +93,7 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     await page.goto(problem.url); await openCurrentProblem(page);
     const button = (name) => page.getByRole('button', { name, exact: true });
     await button('读取待分析代码').click();
-    await page.getByRole('textbox', { name: '待分析代码' }).waitFor();
+    await button('发送并分析代码').waitFor();
     assert.equal(await worker.evaluate(() => globalThis.fixture.requests.length), 0);
     await button('发送并分析代码').click();
     await page.getByLabel('AI 分析结果').waitFor();
@@ -103,11 +104,11 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     assert.equal(JSON.parse(requests[0].body.messages[1].content).code, 'print(1)');
     await page.getByLabel('AI 分析结果').scrollIntoViewIfNeeded(); await page.screenshot({ path: resolve('test-results/ai-analysis.png') });
     await worker.evaluate(() => { globalThis.fixture.mode = '401'; });
-    await button('发送并分析代码').click(); await page.getByRole('alert').filter({ hasText: '拒绝访问' }).waitFor();
+    await button('重新生成').click(); await page.getByRole('alert').filter({ hasText: '拒绝访问' }).waitFor();
     await worker.evaluate(() => { globalThis.fixture.mode = 'pending'; });
     await button('发送并分析代码').click();
     await worker.evaluate(async () => { for (let i = 0; i < 100; i++) { if (globalThis.fixture.requests.length === 3) return; await new Promise((r) => setTimeout(r, 20)); } throw new Error('Request did not start'); });
-    await button('取消分析').click(); await page.getByRole('alert').filter({ hasText: '已取消分析' }).waitFor();
+    await button('停止生成').click(); await page.getByRole('alert').filter({ hasText: '已停止生成' }).waitFor();
     await worker.evaluate(async () => { for (let i = 0; i < 100; i++) { if (globalThis.fixture.aborted === 1) return; await new Promise((r) => setTimeout(r, 20)); } throw new Error('Request not aborted'); });
     await worker.evaluate(() => { globalThis.fixture.allowed = false; });
     await button('发送并分析代码').click(); await page.getByRole('alert').filter({ hasText: '站点权限已撤销' }).waitFor();
@@ -116,7 +117,7 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     await options.evaluate((config) => chrome.runtime.sendMessage({ channel: 'codevault-ai', action: 'save', config }), config);
     await button('发送并分析代码').click(); await page.getByRole('alert').filter({ hasText: 'AI 配置已变化' }).waitFor();
     assert.equal(await worker.evaluate(() => globalThis.fixture.requests.length), 3);
-    await button('读取待分析代码').click(); await page.getByRole('textbox', { name: '待分析代码' }).waitFor();
+    await button('读取待分析代码').click(); await button('发送并分析代码').waitFor();
     await button('发送并分析代码').click();
     await worker.evaluate(async () => { for (let i = 0; i < 100; i++) { if (globalThis.fixture.requests.length === 4) return; await new Promise((r) => setTimeout(r, 20)); } throw new Error('Request did not start'); });
     await page.evaluate(() => history.pushState({}, '', '/problemset/'));
@@ -201,7 +202,7 @@ test('provider presets enforce destinations and connection probes use each nativ
       const body = JSON.parse(options.body);
       assert.match(body.system, /算法学习助手/);
       assert.equal(JSON.parse(body.messages[0].content).code, 'print(1)');
-      assert.equal(body.max_tokens, 4096);
+      assert.equal(body.max_tokens, 1200);
       return Response.json({ content: [{ type: 'thinking', thinking: 'hidden' }, { type: 'text', text: 'analysis fixture-key' }] });
     };
     assert.equal(await analyzeCode(claude, problem, 'print(1)', 'python', new AbortController().signal), 'analysis [API Key 已隐藏]');

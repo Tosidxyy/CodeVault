@@ -30,6 +30,7 @@ export const noteStorage = {
 };
 
 export const solutionStorage = {
+  saveAnalysis: (solution: StoredSolution, analysis: string) => send<StoredSolution>({ channel: 'codevault', action: 'solutions.analysis.save', problemId: solution.problemId, id: solution.id, revision: solution.revision ?? 0, analysis }),
   update: (solution: StoredSolution, metadata: SolutionMetadata) => send<StoredSolution>({ channel: 'codevault', action: 'solutions.update', problemId: solution.problemId, id: solution.id, revision: solution.revision ?? 0, metadata }),
   delete: (solution: StoredSolution) => send<null>({ channel: 'codevault', action: 'solutions.delete', problemId: solution.problemId, id: solution.id, revision: solution.revision ?? 0 }),
   list: (problemId: string) => send<StoredSolution[]>({ channel: 'codevault', action: 'solutions.list', problemId }),

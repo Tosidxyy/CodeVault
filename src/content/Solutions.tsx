@@ -1,3 +1,4 @@
+import { AnalysisMarkdown } from './AnalysisMarkdown';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { Problem } from '../platforms/types';
 import { getProblemRoute } from '../platforms/leetcode';
@@ -37,6 +38,12 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [problem.id, revision]);
+
+  useEffect(() => {
+    const refresh = () => setRevision((value) => value + 1);
+    window.addEventListener('codevault-data-saved', refresh);
+    return () => window.removeEventListener('codevault-data-saved', refresh);
+  }, []);
 
   async function capture(target?: string, snapshot?: CaptureIntent['snapshot']) {
     if (saving.current || editing || deleting) return;
@@ -115,6 +122,7 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
         <summary>{solution.name}</summary>
         <p className="muted">{sourceNames[solution.source]} · {new Date(solution.createdAt).toLocaleString()}</p>
 
+        {solution.analysis && <section aria-label="已保存的 AI 分析"><strong>AI 分析</strong><AnalysisMarkdown text={solution.analysis} /></section>}
         {solution.note && <p className="solution-note">{solution.note}</p>}
         <a href={solution.sourceUrl} target="_blank" rel="noreferrer">查看来源</a>
 
