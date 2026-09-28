@@ -9,6 +9,8 @@ const extensionPath = resolve('dist');
 test('manifest references packaged extension entries', async () => {
   const manifest = JSON.parse(await readFile(resolve(extensionPath, 'manifest.json'), 'utf8'));
   assert.equal(manifest.manifest_version, 3);
+  const pkg = JSON.parse(await readFile(resolve('package.json'), 'utf8'));
+  assert.equal(manifest.version, pkg.version);
   assert.equal(manifest.background.type, 'module');
   assert.deepEqual(manifest.content_scripts[0].matches, ['https://leetcode.com/*', 'https://leetcode.cn/*']);
   assert.equal(manifest.content_scripts[1].world, 'MAIN');
@@ -61,7 +63,7 @@ test('extension loads; popup renders; panel opens without changing host styles',
     const panelBox = await page.getByRole('region', { name: 'CodeVault 面板' }).boundingBox();
     assert.ok(panelBox.x >= 0 && panelBox.x + panelBox.width <= 320);
     await popup.goto(`chrome-extension://${extensionId}/options.html`);
-    await popup.getByText('CodeVault v0.1.0', { exact: false }).waitFor();
+    await popup.getByText('CodeVault v0.2.0', { exact: false }).waitFor();
     await page.route('https://leetcode.com/**', (route) => route.fulfill({ contentType: 'text/html', body: '<h1>International site fixture</h1>' }));
     await page.goto('https://leetcode.com/problems/two-sum/');
     await page.locator('.launcher').waitFor();

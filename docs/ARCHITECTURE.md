@@ -276,3 +276,7 @@ Note:
 - 插图不再处理文字选区，不创建尾部段落；删除沿用附件清理、自动保存、CAS与十秒撤销。
 - 预览使用 Shadow DOM 内原生 dialog.showModal 的浏览器顶层，避免受面板滚动区域裁剪；隔离 Esc 冒泡，关闭预览不关闭面板，浏览器提供模态焦点管理。
 - 使用本地图标16/32/48/128px。Manifest注册 icons/default_icon；仅128px图标对两站暴露，供content图片显示，无新增站点访问权限。用户原图保存在 docs/assets，不进入安装包。
+
+## v0.2.0 发布（2026-09-28）
+
+package.json、lockfile根元数据、Manifest及设置页同步0.2.0。数据库仍为codevault v5/codevault-settings v1，已有记录按原流程迁移与读取。发布ZIP仅包含dist产物，Manifest位于ZIP根目录，不包含源图、测试数据和用户凭据。
