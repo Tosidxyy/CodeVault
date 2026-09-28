@@ -8,3 +8,13 @@ test-results/
 *.log
 
 releases/
+
+# 本地 Agent 开发资料与商店上传素材；公开隐私政策继续跟踪。
+/AGENT.md
+/AGENTS.md
+/TODO.md
+/.agents/
+/.codex/
+/docs/*
+!/docs/PRIVACY.md
+/scripts/webstore-assets.mjs
