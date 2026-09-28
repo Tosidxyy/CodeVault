@@ -62,7 +62,7 @@ function App() {
       <footer>题目、解法与笔记保存在本机<br />AI 仅在主动测试或分析时调用</footer>
     </section>}
     <HoverCapture hidden={open || !ready} onCapture={(next) => { setIntent(next); change({ open: true, view: 'detail' }); }} />
-    <button disabled={!ready} className="launcher" aria-label={open ? '收起 CodeVault' : '展开 CodeVault'} aria-expanded={open} aria-controls="codevault-panel" onClick={() => open ? close() : change({ open: true })}><span aria-hidden="true">{'</>'}</span></button>
+    <button disabled={!ready} className="launcher" aria-label={open ? '收起 CodeVault' : '展开 CodeVault'} aria-expanded={open} aria-controls="codevault-panel" onClick={() => open ? close() : change({ open: true })}><img src={chrome.runtime.getURL('icons/icon-128.png')} alt="" /></button>
   </div>;
 }
 if (!document.getElementById('codevault-root')) {

@@ -12,7 +12,7 @@ test('manifest references packaged extension entries', async () => {
   assert.equal(manifest.background.type, 'module');
   assert.deepEqual(manifest.content_scripts[0].matches, ['https://leetcode.com/*', 'https://leetcode.cn/*']);
   assert.equal(manifest.content_scripts[1].world, 'MAIN');
-  for (const entry of [manifest.action.default_popup, manifest.options_page, manifest.background.service_worker, ...manifest.content_scripts.flatMap((script) => script.js)]) {
+  for (const entry of [...Object.values(manifest.icons), ...Object.values(manifest.action.default_icon), manifest.action.default_popup, manifest.options_page, manifest.background.service_worker, ...manifest.content_scripts.flatMap((script) => script.js)]) {
     await access(resolve(extensionPath, entry));
   }
 });

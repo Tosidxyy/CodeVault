@@ -16,7 +16,7 @@ test('note attachments validate format, limits and remove unused data', () => {
   }
 });
 
-test('inline images support paste, drop, upload, autosave, delete confirmation and undo', { timeout: 90000 }, async () => {
+test('gallery images preserve one text field, support preview, deletion and undo', { timeout: 90000 }, async () => {
   const extension = resolve('dist');
   const context = await chromium.launchPersistentContext('', { channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
@@ -47,7 +47,8 @@ test('inline images support paste, drop, upload, autosave, delete confirmation a
     const images = page.getByRole('img', { name: '笔记图片', exact: true });
     await images.first().waitFor(); await images.first().evaluate((node) => node.decode());
     assert.equal(await images.first().evaluate((node) => node.naturalWidth), 240);
-    assert.equal(await input().inputValue(), 'before ');
+    assert.equal(await input().inputValue(), 'before AFTER');
+    assert.equal(await page.locator('.note-text').count(), 1);
     assert.equal(await button('预览笔记').count(), 0);
     await page.getByRole('alert').filter({ hasText: '本地存储暂时不可用' }).waitFor(); assert.equal(await get(), null);
     await worker.evaluate(() => { IDBObjectStore.prototype.put = globalThis.oldPut; });
@@ -62,9 +63,34 @@ test('inline images support paste, drop, upload, autosave, delete confirmation a
     await page.getByLabel('选择笔记图片').setInputFiles({ name: 'upload.png', mimeType: 'image/png', buffer: Buffer.from(uploadData.split(',')[1], 'base64') });
     await page.waitForFunction(() => document.querySelector('#codevault-root').shadowRoot.querySelectorAll('.note-blocks img').length === 3);
     await saved(); assert.equal(Object.keys((await get()).images).length, 3);
-    await button('删除图片').first().click(); await button('取消删除图片').click(); assert.equal(await images.count(), 3);
-    await button('删除图片').first().click(); await button('确认删除图片').click(); await saved(); assert.equal(Object.keys((await get()).images).length, 2);
+    assert.equal(await page.locator('.note-text').count(), 1);
+    assert.equal(await button('添加段落').count(), 0);
+    await page.getByRole('button', { name: '放大笔记图片', exact: true }).first().click();
+    const preview = page.getByRole('dialog', { name: '笔记图片预览' });
+    await preview.waitFor();
+    const box = await preview.boundingBox(), viewport = page.viewportSize();
+    assert.ok(Math.abs(box.x + box.width / 2 - viewport.width / 2) < 2);
+    assert.ok(Math.abs(box.y + box.height / 2 - viewport.height / 2) < 2);
+    await page.screenshot({ path: resolve('test-results/note-image-preview.png') });
+    await page.getByRole('button', { name: '关闭图片预览' }).press('Escape');
+    await preview.waitFor({ state: 'hidden' });
+    assert.equal(await page.getByRole('region', { name: 'CodeVault 面板' }).isVisible(), true);
+    await page.locator('.note-gallery figure').first().hover();
+    await button('删除图片').first().click(); await saved(); assert.equal(Object.keys((await get()).images).length, 2);
+    assert.equal(await page.locator('.note-text').count(), 1);
     await button('撤销删除图片').click(); await saved(); assert.equal(Object.keys((await get()).images).length, 3);
+    // Multiple old paragraphs and empty placeholders display once without losing text.
+    const previous = await get();
+    const paragraph = (content) => ({ id: crypto.randomUUID(), type: 'text', content });
+    const oldBlocks = [paragraph('第一段'), previous.blocks[1], paragraph(''), paragraph('第二段'), ...previous.blocks.slice(2), paragraph('')];
+    assert.equal((await send({ action: 'notes.saveBlocks', problem: { id: 'leetcode:1', platform: 'leetcode', title: 'Two Sum', slug: 'two-sum', url: 'https://leetcode.cn/problems/two-sum/', difficulty: 'Easy', tags: [] }, blocks: oldBlocks, images: previous.images, revision: previous.revision, sessionId: crypto.randomUUID() })).ok, true);
+    await open();
+    assert.equal(await input().inputValue(), '第一段\n\n第二段');
+    assert.equal(await page.locator('.note-text').count(), 1);
+    for (let i = 0; i < 3; i++) { await page.locator('.note-gallery figure').first().hover(); await button('删除图片').first().click(); await saved(); }
+    assert.equal(await images.count(), 0); assert.equal(await page.locator('.note-text').count(), 1);
+    assert.equal((await get()).blocks.length, 1); assert.equal((await get()).blocks[0].content, '第一段\n\n第二段');
+    await button('撤销删除图片').click(); await saved();
     await images.first().scrollIntoViewIfNeeded(); await page.screenshot({ path: resolve('test-results/note-block-images.png') });
     assert.deepEqual(errors, []);
   } finally { await context.close(); }

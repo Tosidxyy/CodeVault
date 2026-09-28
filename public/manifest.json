@@ -4,20 +4,69 @@
   "version": "0.1.0",
   "description": "本地优先的算法知识管理工具。",
   "minimum_chrome_version": "120",
-  "permissions": ["storage"],
-  "host_permissions": ["https://leetcode.cn/*", "https://leetcode.com/*"],
-  "optional_host_permissions": ["https://*/*"],
-  "action": { "default_popup": "popup.html", "default_title": "CodeVault" },
-  "background": { "service_worker": "background.js", "type": "module" },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://leetcode.cn/*",
+    "https://leetcode.com/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "CodeVault",
+    "default_icon": {
+      "128": "icons/icon-128.png",
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "options_page": "options.html",
-  "content_scripts": [{
-    "matches": ["https://leetcode.com/*", "https://leetcode.cn/*"],
-    "js": ["content.js"],
-    "run_at": "document_idle"
-  }, {
-    "matches": ["https://leetcode.com/*", "https://leetcode.cn/*"],
-    "js": ["editor.js"],
-    "world": "MAIN",
-    "run_at": "document_idle"
-  }]
+  "content_scripts": [
+    {
+      "matches": [
+        "https://leetcode.com/*",
+        "https://leetcode.cn/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://leetcode.com/*",
+        "https://leetcode.cn/*"
+      ],
+      "js": [
+        "editor.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "128": "icons/icon-128.png",
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "32": "icons/icon-32.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/icon-128.png"
+      ],
+      "matches": [
+        "https://leetcode.cn/*",
+        "https://leetcode.com/*"
+      ]
+    }
+  ]
 }
