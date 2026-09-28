@@ -81,4 +81,4 @@ No remotely hosted code is executed. All JavaScript and rendering dependencies a
 2. screenshots/02-notes.png：图文笔记、缩略图与解法列表。
 3. screenshots/03-ai-settings.png：可选服务配置。
 
-小宣传图：promo-440x280.png。商店图标：icon-128.png。截图为真实扩展界面的演示数据，不代表真实用户记录或付费 AI 实测。
+小宣传图：promo-440x280.png。可选顶部宣传图：promo-1400x560.png。商店图标：icon-128.png。“说明”字段可直接复制description.txt。截图为真实扩展界面的演示数据，不代表真实用户记录或付费 AI 实测。

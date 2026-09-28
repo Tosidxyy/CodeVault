@@ -1,7 +1,7 @@
 // Reproducible store assets: real extension UI, isolated demonstration data, no network/API keys.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { mkdir, copyFile, readFile } from 'node:fs/promises';
+import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { openCurrentProblem } from '../tests/helpers.mjs';
 
@@ -75,9 +75,18 @@ try {
   await promo.setContent(`<!doctype html><html><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;width:440px;height:280px;overflow:hidden;background:linear-gradient(125deg,#5c4590,#2f244c);color:#fff;font-family:'Microsoft YaHei',sans-serif}.brand{position:absolute;left:32px;top:47px;display:flex;align-items:center;gap:16px}.brand img{width:76px;height:76px;border-radius:18px}.brand b{font-size:30px;letter-spacing:-1px}.items{position:absolute;left:34px;top:160px;display:flex;gap:12px}.items span{display:block;width:112px;height:76px;border:1px solid #ffffff35;background:#ffffff12;border-radius:12px;text-align:center;padding:11px;font-size:14px}.items strong{display:block;font-size:24px;line-height:29px;font-family:Consolas,monospace}</style><div class="brand"><img src="${icon}"><b>CodeVault</b></div><div class="items"><span><strong>&lt;/&gt;</strong>解法</span><span><strong>✎</strong>笔记</span><span><strong>AI</strong>分析</span></div></html>`);
   await promo.locator('img').evaluate((img) => img.decode());
   await promo.screenshot({ path: resolve(output, 'promo-440x280.png') });
-  for (const [name, width, height] of [['icon-128.png', 128, 128], ['promo-440x280.png', 440, 280], ...['01-library', '02-notes', '03-ai-settings'].map((n) => [`screenshots/${n}.png`, 1280, 800])]) {
+  await promo.setViewportSize({ width: 1400, height: 560 });
+  await promo.setContent(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;width:1400px;height:560px;background:linear-gradient(125deg,#5c4590,#2f244c);color:white;font-family:'Microsoft YaHei',sans-serif;display:flex;align-items:center;padding:80px;gap:70px}img{width:200px;height:200px;border-radius:44px}h1{font-size:68px;margin:0 0 20px;letter-spacing:-2px}p{font-size:26px;color:#ede5ff;margin:0 0 32px}.features{display:flex;gap:16px}.features span{font-size:20px;border:1px solid #ffffff35;background:#ffffff12;border-radius:14px;padding:16px 24px}</style><img src="${icon}"><main><h1>CodeVault</h1><p>收藏题目，积累解法，留下自己的思考。</p><div class="features"><span>&lt;/&gt; 多版本解法</span><span>✎ 图文笔记</span><span>AI 可选分析</span></div></main></html>`);
+  await promo.locator('img').evaluate((img) => img.decode());
+  await promo.screenshot({ path: resolve(output, 'promo-1400x560.png') });
+  const listing = await readFile(resolve(output, 'LISTING.md'), 'utf8');
+  const description = listing.split('## 详细介绍\n')[1]?.split('\n## 分类与链接')[0]?.trim();
+  assert.ok(description && description.length < 16000);
+  await writeFile(resolve(output, 'description.txt'), description + '\n', 'utf8');
+  for (const [name, width, height] of [['icon-128.png', 128, 128], ['promo-440x280.png', 440, 280], ['promo-1400x560.png', 1400, 560], ...['01-library', '02-notes', '03-ai-settings'].map((n) => [`screenshots/${n}.png`, 1280, 800])]) {
     const bytes = await readFile(resolve(output, name));
     assert.equal(bytes.readUInt32BE(16), width); assert.equal(bytes.readUInt32BE(20), height);
+    if (name !== 'icon-128.png') { assert.equal(bytes[24], 8); assert.equal(bytes[25], 2, 'Store screenshot/promo must be 24-bit RGB without alpha'); }
     console.log(`${name}: ${width}x${height}`);
   }
 } finally { await context.close(); }
