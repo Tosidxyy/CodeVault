@@ -1,4 +1,10 @@
-# CodeVault
+<p align="center">
+  <img src="public/icons/icon-128.png" alt="CodeVault 图标" width="96" height="96" />
+</p>
+
+<h1 align="center">CodeVault</h1>
+
+<p align="center">收藏题目，积累解法，留下自己的思考。</p>
 
 CodeVault 是一个本地优先的 LeetCode 算法知识管理浏览器扩展，帮助你保存解法、记录思路，并在复习时回到自己的代码和笔记。
 
