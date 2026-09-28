@@ -55,6 +55,10 @@ npm run test:live
 
 本轮结果及尚待人工验收项见 [v0.2 验收记录](docs/ACCEPTANCE_v0.2.md)。真实付费 AI、系统剪贴板、国际站完整编辑器流程尚未最终验收。
 
+## Chrome Web Store 上架
+
+[上架材料与操作清单](docs/webstore/README.md)包含可复制的商店文案、权限和数据用途说明、英文审核测试步骤、合规尺寸截图及宣传图。[隐私政策](docs/PRIVACY.md)公开说明本地存储和用户主动 AI 数据传输。v0.2.0 发布包保持不变；材料准备完成不代表已经提交审核或上架。
+
 ## 目录
 
 - `src/content`：Shadow DOM 面板、笔记与 AI 界面。
