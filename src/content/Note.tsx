@@ -1,3 +1,4 @@
+import { useT } from '../i18n/locale';
 import { galleryBlocks, noteText } from './noteLayout';
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { NoteBlock } from '../database/types';
@@ -8,6 +9,7 @@ import { readPastedImage } from './pasteImage';
 import { noteDraft } from './noteDraft';
 
 export function Note({ problem, onSaved }: { problem: Problem; onSaved: () => void }) {
+  const t = useT();
   const draft = noteDraft(problem);
   const state = useSyncExternalStore(draft.subscribe, draft.snapshot);
   const [processing, setProcessing] = useState(false);
@@ -63,41 +65,41 @@ export function Note({ problem, onSaved }: { problem: Problem; onSaved: () => vo
     setUndo({ block, index, data: state.images[block.assetId] });
     edit(galleryBlocks(state.blocks.filter((item) => item.id !== id)));
   }
-  return <section ref={container} className="card note block-note" aria-label="题目笔记" onDragOver={(event) => { if (event.dataTransfer.types.includes('Files')) event.preventDefault(); }} onDrop={(event) => {
+  return <section ref={container} className="card note block-note" aria-label={t("题目笔记")} onDragOver={(event) => { if (event.dataTransfer.types.includes('Files')) event.preventDefault(); }} onDrop={(event) => {
     if (!event.dataTransfer.files.length) return;
     event.preventDefault(); event.stopPropagation(); void insert(Array.from(event.dataTransfer.files));
   }}>
-    <div className="note-heading"><strong>题目笔记</strong><span role="status" data-saved={state.saved && !state.dirty && !state.saving && !state.error}>{!state.ready ? '正在读取…' : processing ? '正在处理图片…' : state.saving ? '正在保存…' : state.error ? '保存未完成' : state.dirty ? '待自动保存' : state.saved ? '已保存' : '开始记录思路'}</span></div>
-    <p className="muted">直接输入文字，粘贴、拖入或上传图片。停止输入后自动保存。</p>
-    {(error || state.error) && <p role="alert">{error || state.error}</p>}
-    {state.legacy && <p className="muted">旧笔记已转换，原文和附件备份保留在本机。</p>}
+    <div className="note-heading"><strong>{t("题目笔记")}</strong><span role="status" data-saved={state.saved && !state.dirty && !state.saving && !state.error}>{!state.ready ? t('正在读取…') : processing ? t('正在处理图片…') : state.saving ? t('正在保存…') : t(state.error) ? t('保存未完成') : state.dirty ? t('待自动保存') : state.saved ? t('已保存') : t('开始记录思路')}</span></div>
+    <p className="muted">{t("直接输入文字，粘贴、拖入或上传图片。停止输入后自动保存。")}</p>
+    {(t(error || state.error)) && <p role="alert">{t(error || state.error)}</p>}
+    {state.legacy && <p className="muted">{t("旧笔记已转换，原文和附件备份保留在本机。")}</p>}
     {state.ready && <>
-      <div className="note-blocks" aria-label="笔记编辑区">
-        <textarea className="note-text" aria-label="笔记文字 1" placeholder="记录思路、易错点…" value={noteText(state.blocks)} disabled={processing} maxLength={20000}
+      <div className="note-blocks" aria-label={t("笔记编辑区")}>
+        <textarea className="note-text" aria-label={t("笔记文字 1")} placeholder={t("记录思路、易错点…")} value={noteText(state.blocks)} disabled={processing} maxLength={20000}
           onChange={(event) => edit(galleryBlocks(state.blocks, event.target.value))}
           onPaste={(event) => { if (event.clipboardData.files.length) { event.preventDefault(); void insert(Array.from(event.clipboardData.files)); } }} />
-        <div className="note-gallery" aria-label="笔记图片列表">
+        <div className="note-gallery" aria-label={t("笔记图片列表")}>
           {state.blocks.filter((block) => block.type === 'image').map((block) => block.type === 'image' && <figure key={block.id}>
-            <button className="note-thumbnail" aria-label="放大笔记图片" onClick={() => setPreview(block.assetId)}><img src={state.images[block.assetId]} alt="笔记图片" /></button>
-            <button className="image-delete" aria-label="删除图片" title="删除图片" disabled={processing} onClick={() => removeImage(block.id)}>×</button>
+            <button className="note-thumbnail" aria-label={t("放大笔记图片")} onClick={() => setPreview(block.assetId)}><img src={state.images[block.assetId]} alt={t("笔记图片")} /></button>
+            <button className="image-delete" aria-label={t("删除图片")} title={t("删除图片")} disabled={processing} onClick={() => removeImage(block.id)}>×</button>
           </figure>)}
-          <button className="secondary note-upload" disabled={processing} onClick={() => input.current?.click()}>上传图片</button>
+          <button className="secondary note-upload" disabled={processing} onClick={() => input.current?.click()}>{t("上传图片")}</button>
         </div>
       </div>
-      <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" aria-label="选择笔记图片" hidden onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ''; if (files.length) void insert(files); }} />
-      <p className="muted">{noteText(state.blocks).length}/20000 字符 · 图片单张2MB，最多5张、合计6MB</p>
-      {undo && <p role="status">图片已删除 · <button className="secondary" onClick={() => {
+      <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" aria-label={t("选择笔记图片")} hidden onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ''; if (files.length) void insert(files); }} />
+      <p className="muted">{noteText(state.blocks).length}{t("/20000 字符 · 图片单张2MB，最多5张、合计6MB")}</p>
+      {undo && <p role="status">{t("图片已删除 · ")}<button className="secondary" onClick={() => {
         const blocks = galleryBlocks(state.blocks); blocks.splice(Math.max(1, Math.min(undo.index, blocks.length)), 0, undo.block);
         try { const document = validateBlocks(blocks, { ...state.images, [undo.block.assetId]: undo.data }); draft.edit(document); setUndo(undefined); }
         catch (reason) { setError((reason as Error).message); }
-      }}>撤销删除图片</button></p>}
-      {state.error && <button className="secondary" disabled={processing || state.saving} onClick={() => draft.flush(true)}>重试保存笔记</button>}
+      }}>{t("撤销删除图片")}</button></p>}
+      {t(state.error) && <button className="secondary" disabled={processing || state.saving} onClick={() => draft.flush(true)}>{t("重试保存笔记")}</button>}
     </>}
-    {preview && state.images[preview] && <dialog ref={dialog} className="image-viewer" aria-label="笔记图片预览" onCancel={(event) => { event.preventDefault(); setPreview(undefined); }} onKeyDown={(event) => { event.stopPropagation(); }} onClick={(event) => { if (event.target === event.currentTarget) setPreview(undefined); }}>
-      <button className="viewer-close" aria-label="关闭图片预览" onClick={() => setPreview(undefined)}>×</button>
-      <img src={state.images[preview]} alt="放大的笔记图片" />
+    {preview && state.images[preview] && <dialog ref={dialog} className="image-viewer" aria-label={t("笔记图片预览")} onCancel={(event) => { event.preventDefault(); setPreview(undefined); }} onKeyDown={(event) => { event.stopPropagation(); }} onClick={(event) => { if (event.target === event.currentTarget) setPreview(undefined); }}>
+      <button className="viewer-close" aria-label={t("关闭图片预览")} onClick={() => setPreview(undefined)}>×</button>
+      <img src={state.images[preview]} alt={t("放大的笔记图片")} />
     </dialog>}
-    <button className="secondary" disabled={processing || state.saving} onClick={() => state.dirty ? setConfirmReload(true) : void draft.read()}>读取最新笔记</button>
-    {confirmReload && <div role="group" aria-label="重新读取确认"><p>重新读取会放弃当前未保存内容，是否继续？</p><button className="secondary" onClick={() => { setConfirmReload(false); setError(''); void draft.read(); }}>放弃修改并读取</button><button className="secondary" onClick={() => setConfirmReload(false)}>继续编辑</button></div>}
+    <button className="secondary" disabled={processing || state.saving} onClick={() => state.dirty ? setConfirmReload(true) : void draft.read()}>{t("读取最新笔记")}</button>
+    {confirmReload && <div role="group" aria-label={t("重新读取确认")}><p>{t("重新读取会放弃当前未保存内容，是否继续？")}</p><button className="secondary" onClick={() => { setConfirmReload(false); setError(''); void draft.read(); }}>{t("放弃修改并读取")}</button><button className="secondary" onClick={() => setConfirmReload(false)}>{t("继续编辑")}</button></div>}
   </section>;
 }

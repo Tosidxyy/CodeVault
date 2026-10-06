@@ -57,6 +57,7 @@ chrome.runtime.onConnect.addListener((port) => {
       const problem = validateProblem(message.problem);
       if (!port.sender?.url?.startsWith(chrome.runtime.getURL('')) && new URL(port.sender!.url!).origin !== new URL(problem.url).origin) throw new Error('题目来源不匹配。');
       if (typeof message.code !== 'string' || !message.code.trim() || message.code.length > 50000 || typeof message.language !== 'string' || !/^[a-z0-9_+#.-]{1,40}$/i.test(message.language)) throw new Error('分析代码无效，最多支持50000字符。');
+      if (message.outputLocale !== undefined && !['zh', 'en'].includes(message.outputLocale as string)) throw new Error('不支持的分析语言。');
       if (message.solutionId !== undefined) {
         const solution = (await listSolutions(problem.id)).find((item) => item.id === message.solutionId);
         if (!solution || (solution.revision ?? 0) !== message.solutionRevision || solution.code !== message.code || solution.language !== message.language) throw new Error('解法已变化，请重新读取待分析代码。');
@@ -68,7 +69,7 @@ chrome.runtime.onConnect.addListener((port) => {
       if (controller.signal.aborted) throw new Error('分析已取消。');
       return analyzeCode(config, problem, message.code, message.language, controller.signal, (text) => {
         if (connected && !controller.signal.aborted) port.postMessage({ ok: true, type: 'progress', data: text });
-      });
+      }, message.outputLocale === 'en' ? 'en' : 'zh');
     })().then((data) => { if (connected) port.postMessage({ ok: true, data }); })
       .catch((error: Error) => { if (connected) port.postMessage({ ok: false, error: controller.signal.aborted ? '分析已取消或超时，请重试。' : error.message }); })
       .finally(() => { clearTimeout(timer); active.delete(controller); if (connected) port.disconnect(); });

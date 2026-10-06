@@ -14,6 +14,7 @@
 .popup-header h2 { font-size:18px; margin:0; }
 .popup-header a { color:var(--cv-muted); padding:8px; border-radius:8px; }
 .popup-header a:hover { background:var(--cv-soft); }
+.popup-header-tools { display:flex; align-items:center; gap:8px; }
 .settings-shell { max-width:520px; margin:40px auto; background:var(--cv-surface); border-radius:16px; overflow:hidden; }
 .settings-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 24px; font-size:18px; }
 .settings-header a { font-size:11px; color:var(--cv-muted); text-decoration:none; }

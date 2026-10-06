@@ -22,7 +22,7 @@ test('bookmarks persist in extension IDB, deduplicate, rollback failures and sur
   await mkdir(resultDir, { recursive: true });
   const profile = await mkdtemp(resolve(resultDir, 'storage-profile-'));
   const extensionPath = resolve('dist');
-  const launch = () => chromium.launchPersistentContext(profile, {
+  const launch = () => chromium.launchPersistentContext(profile, { locale: 'zh-CN',
     channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
     args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
   });

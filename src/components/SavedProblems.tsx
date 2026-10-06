@@ -1,3 +1,4 @@
+import { useT } from '../i18n/locale';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Problem } from '../platforms/types';
 import { problemStorage } from '../database/client';
@@ -8,6 +9,7 @@ import type { LibraryFilters } from '../navigation/state';
 import { filterLibrary } from './libraryQuery';
 const labels = { Easy: '简单', Medium: '中等', Hard: '困难' };
 export function SavedProblems({ currentProblem, onOpenCurrent }: { currentProblem?: Problem; onOpenCurrent?: () => void }) {
+  const t = useT();
   const view = useNavigation((state) => state.view);
   const query = useNavigation((state) => state.query);
   const difficulty = useNavigation((state) => state.difficulty);
@@ -69,36 +71,36 @@ export function SavedProblems({ currentProblem, onOpenCurrent }: { currentProble
     catch (reason) { setError((reason as Error).message); }
     finally { setNavigating(false); }
   };
-  return <section className="library" aria-label="我的收藏" aria-busy={loading || navigating}>
-    <h1 className="library-title">{showTrash ? '回收站' : '我的算法库'}</h1>
-    <p className="library-intro">{showTrash ? '找回移出的题目，保留你的积累。' : '把每次练习，变成可以复习的积累。'}</p>
-    <label className="library-search">{showTrash ? '搜索回收站' : '搜索题库'}<input type="search" aria-label={showTrash ? '搜索回收站' : '搜索收藏题目'} placeholder="搜索题目、标签、解法名称" value={query} maxLength={500} onChange={event => changeFilters({ query: event.target.value })} /></label>
-    <details className="library-filter-panel" open={hasFilters}><summary>筛选与排序{hasFilters && <span> · 已启用</span>}</summary><div className="library-filters">
-      <label>难度<select aria-label="难度筛选" value={difficulty} onChange={event => changeFilters({ difficulty: event.target.value as LibraryFilters['difficulty'] })}><option value="all">全部难度</option>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <label>标签<select aria-label="标签筛选" value={tag} onChange={event => changeFilters({ tag: event.target.value })}><option value="">全部标签</option>{tag && !tags.includes(tag) && <option value={tag}>{tag}（无匹配）</option>}{tags.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-      <label>排序<select aria-label="排序方式" value={sort} onChange={event => changeFilters({ sort: event.target.value as LibraryFilters['sort'] })}><option value="favorite">收藏时间</option><option value="recent">最近访问</option><option value="title">题目名称</option></select></label>
-    </div><button onClick={() => changeFilters({ difficulty: defaultFilters.difficulty, tag: defaultFilters.tag, sort: defaultFilters.sort })}>重置筛选</button></details>
-    {(hasFilters || query.trim()) && <p className="library-filter-count">匹配 {showTrash ? filteredTrash.length : filtered.length} / {showTrash ? trash.length : items.length} 个题目</p>}
-    {onOpenCurrent && !showTrash && <div className="current-problem-card"><span>正在浏览</span><div>{currentProblem && <strong>{currentProblem.title}</strong>}<button onClick={onOpenCurrent}>查看当前题目 →</button></div></div>}
-    <div className="library-tools"><button disabled={working} onClick={() => { setShowTrash(value => !value); setPending(undefined); setNotice(''); }}>{showTrash ? '返回收藏' : `回收站（${trash.length}）`}</button></div>
-    {error && <p role="alert">{error}</p>}
-    {notice && <p role="status">{notice}</p>}
-    {pending && <div className="trash-confirm" role="alertdialog" aria-label={pending.action === 'trash' ? '移入回收站确认' : '永久删除题目确认'}><strong>{pending.action === 'trash' ? '移入回收站？' : '永久删除？'}</strong><p>“{pending.item.title}”的全部解法、分析、笔记和图片{pending.action === 'trash' ? '将一起移入回收站，可以恢复。' : '将被清除，无法通过回收站恢复。已有备份文件不会被删除。'}</p><div><button disabled={working} onClick={() => void changeTrash(pending.item, pending.action)}>{pending.action === 'trash' ? '确认移入回收站' : '确认永久删除题目'}</button><button disabled={working} onClick={() => setPending(undefined)}>取消</button></div></div>}
-    {loading && !items.length && <p role="status">正在读取收藏…</p>}
+  return <section className="library" aria-label={t("我的收藏")} aria-busy={loading || navigating}>
+    <h1 className="library-title">{showTrash ? t('回收站') : t('我的算法库')}</h1>
+    <p className="library-intro">{showTrash ? t('找回移出的题目，保留你的积累。') : t('把每次练习，变成可以复习的积累。')}</p>
+    <label className="library-search">{showTrash ? t('搜索回收站') : t('搜索题库')}<input type="search" aria-label={showTrash ? t('搜索回收站') : t('搜索收藏题目')} placeholder={t("搜索题目、标签、解法名称")} value={query} maxLength={500} onChange={event => changeFilters({ query: event.target.value })} /></label>
+    <details className="library-filter-panel" open={hasFilters}><summary>{t("筛选与排序")}{hasFilters && <span>{t(" · 已启用")}</span>}</summary><div className="library-filters">
+      <label>{t("难度")}<select aria-label={t("难度筛选")} value={difficulty} onChange={event => changeFilters({ difficulty: event.target.value as LibraryFilters['difficulty'] })}><option value="all">{t("全部难度")}</option>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}</select></label>
+      <label>{t("标签")}<select aria-label={t("标签筛选")} value={tag} onChange={event => changeFilters({ tag: event.target.value })}><option value="">{t("全部标签")}</option>{tag && !tags.includes(tag) && <option value={tag}>{tag}{t("（无匹配）")}</option>}{tags.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+      <label>{t("排序")}<select aria-label={t("排序方式")} value={sort} onChange={event => changeFilters({ sort: event.target.value as LibraryFilters['sort'] })}><option value="favorite">{t("收藏时间")}</option><option value="recent">{t("最近访问")}</option><option value="title">{t("题目名称")}</option></select></label>
+    </div><button onClick={() => changeFilters({ difficulty: defaultFilters.difficulty, tag: defaultFilters.tag, sort: defaultFilters.sort })}>{t("重置筛选")}</button></details>
+    {(hasFilters || query.trim()) && <p className="library-filter-count">{t("匹配 ")}{showTrash ? filteredTrash.length : filtered.length} / {showTrash ? trash.length : items.length}{t(" 个题目")}</p>}
+    {onOpenCurrent && !showTrash && <div className="current-problem-card"><span>{t("正在浏览")}</span><div>{currentProblem && <strong>{currentProblem.title}</strong>}<button onClick={onOpenCurrent}>{t("查看当前题目 →")}</button></div></div>}
+    <div className="library-tools"><button disabled={working} onClick={() => { setShowTrash(value => !value); setPending(undefined); setNotice(''); }}>{showTrash ? t('返回收藏') : t(`回收站（${trash.length}）`)}</button></div>
+    {t(error) && <p role="alert">{t(error)}</p>}
+    {notice && <p role="status">{t(notice)}</p>}
+    {pending && <div className="trash-confirm" role="alertdialog" aria-label={pending.action === 'trash' ? t('移入回收站确认') : t('永久删除题目确认')}><strong>{pending.action === 'trash' ? t('移入回收站？') : t('永久删除？')}</strong><p>“{pending.item.title}{t("”的全部解法、分析、笔记和图片")}{pending.action === 'trash' ? t('将一起移入回收站，可以恢复。') : t('将被清除，无法通过回收站恢复。已有备份文件不会被删除。')}</p><div><button disabled={working} onClick={() => void changeTrash(pending.item, pending.action)}>{pending.action === 'trash' ? t('确认移入回收站') : t('确认永久删除题目')}</button><button disabled={working} onClick={() => setPending(undefined)}>{t("取消")}</button></div></div>}
+    {loading && !items.length && <p role="status">{t("正在读取收藏…")}</p>}
     <div className="library-scroll" ref={list} onScroll={(event) => { if (!showTrash && view === 'home' && event.currentTarget.getClientRects().length) { useNavigation.setState({ scroll: event.currentTarget.scrollTop }); void persistNavigation().catch(() => {}); } }}>
-      {showTrash ? <><div className="library-heading"><h2>回收站 {trash.length}</h2><button disabled={loading || working} onClick={() => setAttempt(value => value + 1)}>刷新回收站</button></div><p>不会自动清空。恢复保留所有关联内容。</p>{!loading && !trash.length && <p>回收站是空的。</p>}{!!trash.length && !filteredTrash.length && <p>没有匹配的回收站题目。</p>}<ul>{filteredTrash.map(item => <li className="trash-item" key={item.id}><div className="problem-item"><span className="problem-item-title">{item.title}</span><p>{item.solutionCount} 个解法 · {item.hasNote ? '有笔记' : '暂无笔记'} · {new Date(item.deletedAt!).toLocaleDateString()}</p><div className="trash-actions"><button disabled={working} aria-label={`恢复题目：${item.title}`} onClick={() => void changeTrash(item, 'restore')}>恢复</button><button disabled={working} aria-label={`永久删除题目：${item.title}`} onClick={() => setPending({ item, action: 'purge' })}>永久删除</button></div></div></li>)}</ul></> : <>
-      <h3>最近访问</h3>
-      {recent.length ? <div className="recent-list">{recent.map((item) => <button disabled={navigating} key={item.id} onClick={() => void select(item)}>{item.title}</button>)}</div> : <p className="muted">打开收藏题目后，会显示在这里。</p>}
-      <div className="library-heading"><h2 aria-label={`我的收藏（${items.length}）`}>全部收藏 {items.length}</h2><button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>刷新收藏</button></div>
-      {!loading && !items.length && <p className="muted">还没有收藏。在题目面板点击“收藏题目”，即可保存到本机。</p>}
-      {!!items.length && !filtered.length && <p className="muted">没有匹配的收藏题目。</p>}
+      {showTrash ? <><div className="library-heading"><h2>{t("回收站 ")}{trash.length}</h2><button disabled={loading || working} onClick={() => setAttempt(value => value + 1)}>{t("刷新回收站")}</button></div><p>{t("不会自动清空。恢复保留所有关联内容。")}</p>{!loading && !trash.length && <p>{t("回收站是空的。")}</p>}{!!trash.length && !filteredTrash.length && <p>{t("没有匹配的回收站题目。")}</p>}<ul>{filteredTrash.map(item => <li className="trash-item" key={item.id}><div className="problem-item"><span className="problem-item-title">{item.title}</span><p>{item.solutionCount}{t(" 个解法 · ")}{item.hasNote ? t('有笔记') : t('暂无笔记')} · {new Date(item.deletedAt!).toLocaleDateString()}</p><div className="trash-actions"><button disabled={working} aria-label={t(`恢复题目：${item.title}`)} onClick={() => void changeTrash(item, 'restore')}>{t("恢复")}</button><button disabled={working} aria-label={t(`永久删除题目：${item.title}`)} onClick={() => setPending({ item, action: 'purge' })}>{t("永久删除")}</button></div></div></li>)}</ul></> : <>
+      <h3>{t("最近访问")}</h3>
+      {recent.length ? <div className="recent-list">{recent.map((item) => <button disabled={navigating} key={item.id} onClick={() => void select(item)}>{item.title}</button>)}</div> : <p className="muted">{t("打开收藏题目后，会显示在这里。")}</p>}
+      <div className="library-heading"><h2 aria-label={t(`我的收藏（${items.length}）`)}>{t("全部收藏 ")}{items.length}</h2><button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>{t("刷新收藏")}</button></div>
+      {!loading && !items.length && <p className="muted">{t("还没有收藏。在题目面板点击“收藏题目”，即可保存到本机。")}</p>}
+      {!!items.length && !filtered.length && <p className="muted">{t("没有匹配的收藏题目。")}</p>}
       <ul>{filtered.map((item) => <li key={item.id}>
         <a className="problem-item" aria-label={item.title} aria-disabled={navigating} href={item.url} onClick={(event) => { event.preventDefault(); if (!navigating) void select(item); }}>
-          <div className="problem-item-heading"><span className="problem-item-title">{item.title}</span><span className={`difficulty ${item.difficulty.toLowerCase()}`}>{labels[item.difficulty]}</span></div>
-          <p className="library-tags">{item.tags.join(' · ') || '暂无标签'}</p>
-          <div className="problem-item-footer"><span>{item.solutionCount} 个解法</span><span className={item.hasNote ? 'has-note' : undefined}>{item.hasNote ? '有笔记' : '暂无笔记'}</span><span className="problem-item-arrow" aria-hidden="true">打开题目 ›</span></div>
+          <div className="problem-item-heading"><span className="problem-item-title">{item.title}</span><span className={`difficulty ${item.difficulty.toLowerCase()}`}>{t(labels[item.difficulty])}</span></div>
+          <p className="library-tags">{item.tags.join(' · ') || t('暂无标签')}</p>
+          <div className="problem-item-footer"><span>{item.solutionCount}{t(" 个解法")}</span><span className={item.hasNote ? 'has-note' : undefined}>{item.hasNote ? t('有笔记') : t('暂无笔记')}</span><span className="problem-item-arrow" aria-hidden="true">{t("打开题目 ›")}</span></div>
         </a>
-        <div className="problem-item-actions"><button disabled={working || navigating} aria-label={`移入回收站：${item.title}`} onClick={() => setPending({ item, action: 'trash' })}>移入回收站</button></div>
+        <div className="problem-item-actions"><button disabled={working || navigating} aria-label={t(`移入回收站：${item.title}`)} onClick={() => setPending({ item, action: 'trash' })}>{t("移入回收站")}</button></div>
       </li>)}</ul></>}
     </div>
   </section>;

@@ -1,3 +1,4 @@
+import { useT } from '../i18n/locale';
 import { useProblem } from './useProblem';
 import { Bookmark } from './Bookmark';
 import { useState } from 'react';
@@ -9,18 +10,19 @@ import type { CaptureIntent } from '../platforms/editor';
 const difficultyLabels = { Easy: '简单', Medium: '中等', Hard: '困难' };
 
 export function ProblemCard({ current, intent, onIntentHandled }: { current: ReturnType<typeof useProblem>; intent?: CaptureIntent; onIntentHandled: () => void }) {
+  const t = useT();
   const { state, retry } = current;
   const [revision, setRevision] = useState(0);
   return <><div className="card problem" aria-live="polite" aria-busy={state.status === 'loading'}>
-    {state.status !== 'ready' && <strong>当前题目</strong>}
-    {state.status === 'idle' && <p>打开一道 LeetCode 题目，即可查看题目信息。</p>}
-    {state.status === 'loading' && <p role="status">正在识别题目…</p>}
-    {state.status === 'error' && <><p role="alert">{state.message}</p><button className="retry" onClick={retry}>重新识别</button></>}
+    {state.status !== 'ready' && <strong>{t("当前题目")}</strong>}
+    {state.status === 'idle' && <p>{t("打开一道 LeetCode 题目，即可查看题目信息。")}</p>}
+    {state.status === 'loading' && <p role="status">{t("正在识别题目…")}</p>}
+    {state.status === 'error' && <><p role="alert">{t(state.message)}</p><button className="retry" onClick={retry}>{t("重新识别")}</button></>}
     {state.status === 'ready' && <>
       <h3><a href={state.problem.url} target="_blank" rel="noreferrer">{state.problem.title}</a></h3>
-      <div className="tags" aria-label="题目标签"><span className={`difficulty ${state.problem.difficulty.toLowerCase()}`}>{difficultyLabels[state.problem.difficulty]}</span>{state.problem.tags.length
+      <div className="tags" aria-label={t("题目标签")}><span className={`difficulty ${state.problem.difficulty.toLowerCase()}`}>{t(difficultyLabels[state.problem.difficulty])}</span>{state.problem.tags.length
         ? state.problem.tags.map((tag) => <span className="tag" key={tag}>{tag}</span>)
-        : <span className="muted">暂无标签</span>}</div>
+        : <span className="muted">{t("暂无标签")}</span>}</div>
       <Bookmark key={`${state.problem.url}:${revision}`} problem={state.problem} />
     </>}
   </div>{state.status === 'ready' && <><Solutions key={state.problem.url} problem={state.problem} intent={intent} onIntentHandled={onIntentHandled} onSaved={() => setRevision((value) => value + 1)} /><Note key={`note:${state.problem.url}`} problem={state.problem} onSaved={() => setRevision((value) => value + 1)} /><AiAnalysis key={`ai:${state.problem.url}`} problem={state.problem} /></>}</>;

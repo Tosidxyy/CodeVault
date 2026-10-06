@@ -63,7 +63,7 @@ export type StorageRequest =
   | { channel: 'codevault'; action: 'problems.save'; problem: Problem }
   | { channel: 'codevault'; action: 'solutions.analysis.save'; problemId: string; id: string; revision: number; analysis: string }
   | { channel: 'codevault'; action: 'solutions.list'; problemId: string }
-  | { channel: 'codevault'; action: 'solutions.save'; problem: Problem; solution: SolutionDraft }
+  | { channel: 'codevault'; action: 'solutions.save'; problem: Problem; solution: SolutionDraft; locale?: 'zh' | 'en' }
   | { channel: 'codevault'; action: 'solutions.update'; problemId: string; id: string; revision: number; metadata: SolutionMetadata }
   | { channel: 'codevault'; action: 'solutions.delete'; problemId: string; id: string; revision: number };
 

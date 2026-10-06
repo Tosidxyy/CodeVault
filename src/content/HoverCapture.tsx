@@ -1,9 +1,11 @@
+import { useT } from '../i18n/locale';
 import { articleCodeBlock, readArticleCode } from '../platforms/article';
 import { useEffect, useState } from 'react';
 import { getProblemRoute } from '../platforms/leetcode';
 import type { CaptureIntent } from '../platforms/editor';
 
 export function HoverCapture({ hidden, onCapture }: { hidden: boolean; onCapture: (intent: CaptureIntent) => void }) {
+  const t = useT();
   const [error, setError] = useState('');
   const [target, setTarget] = useState<{ element: Element; x: number; y: number; url: string } | null>(null);
   useEffect(() => {
@@ -23,7 +25,7 @@ export function HoverCapture({ hidden, onCapture }: { hidden: boolean; onCapture
     return () => { document.removeEventListener('pointerover', over); document.removeEventListener('scroll', clear, true); window.removeEventListener('resize', clear); };
   }, []);
   if (hidden || !target?.element.isConnected || !getProblemRoute(location.href)) return null;
-  return <><button title={error || undefined} className="capture-hover" style={{ left: target.x, top: target.y }} onClick={() => {
+  return <><button title={t(error) || undefined} className="capture-hover" style={{ left: target.x, top: target.y }} onClick={() => {
     const route = getProblemRoute(location.href);
     if (!route || target.url !== location.href) { setTarget(null); return; }
     if (target.element instanceof HTMLElement && articleCodeBlock(target.element)) {
@@ -35,5 +37,5 @@ export function HoverCapture({ hidden, onCapture }: { hidden: boolean; onCapture
     target.element.setAttribute('data-codevault-editor', token);
     onCapture({ id: crypto.randomUUID(), target: token, problemUrl: route.url });
     setTarget(null);
-  }}>{error || '🚀 添加至 CodeVault'}</button></>;
+  }}>{t(error) || t('🚀 添加至 CodeVault')}</button></>;
 }

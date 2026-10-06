@@ -24,7 +24,7 @@ test('v4 notes migrate without loss; autosave, failure recovery, conflicts, clos
   const resultDir = resolve('test-results'); await mkdir(resultDir, { recursive: true });
   const profile = await mkdtemp(resolve(resultDir, 'notes-profile-'));
   const extension = resolve('dist');
-  const launch = () => chromium.launchPersistentContext(profile, { channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true, args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
+  const launch = () => chromium.launchPersistentContext(profile, { locale: 'zh-CN', channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true, args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   const problem = { id: 'leetcode:1', platform: 'leetcode', slug: 'two-sum', url: 'https://leetcode.cn/problems/two-sum/', title: '两数之和', difficulty: 'Easy', tags: [] };
   const legacy = { problemId: problem.id, markdown: '# 旧笔记\n\n**哈希表**\n\n![图](codevault-image:' + asset + ')', images: { [asset]: png }, revision: 3, updatedAt: 123 };
   let context;

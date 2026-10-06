@@ -17,7 +17,7 @@ test('panel drags, cancels, moves by keyboard, expands, remembers across restart
   const extension=resolve('dist');let context,page,probe;
   const errors=[];
   const launch=async()=>{
-    context=await chromium.launchPersistentContext(profile,{channel:process.env.CODEVAULT_BROWSER_CHANNEL||'chromium',headless:true,args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
+    context=await chromium.launchPersistentContext(profile,{ locale: 'zh-CN',channel:process.env.CODEVAULT_BROWSER_CHANNEL||'chromium',headless:true,args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
     const worker=context.serviceWorkers()[0]??await context.waitForEvent('serviceworker');probe=await context.newPage();await probe.goto(`chrome-extension://${new URL(worker.url()).host}/options.html`);
     await context.route('https://leetcode.cn/**',route=>new URL(route.request().url()).pathname==='/graphql/'?route.fulfill({json:{data:{question:{questionId:'1',titleSlug:'two-sum',title:'Two Sum',difficulty:'Easy',topicTags:[]}}}}):route.fulfill({contentType:'text/html',body:'<h1>Panel layout fixture</h1>'}));
     page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));await page.goto('https://leetcode.cn/problems/two-sum/');

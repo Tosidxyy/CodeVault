@@ -18,7 +18,7 @@ test('note attachments validate format, limits and remove unused data', () => {
 
 test('gallery images preserve one text field, support preview, deletion and undo', { timeout: 90000 }, async () => {
   const extension = resolve('dist');
-  const context = await chromium.launchPersistentContext('', { channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
+  const context = await chromium.launchPersistentContext('', { locale: 'zh-CN', channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');

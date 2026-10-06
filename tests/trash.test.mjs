@@ -16,7 +16,7 @@ test('trash confirms, preserves data across restart, rejects stale restores/writ
   const profile = await mkdtemp(resolve(root, 'trash-profile-'));
   const downloads = resolve(profile, 'downloads'); await mkdir(downloads);
   const extension = resolve('dist');
-  const launch = () => chromium.launchPersistentContext(profile, { channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true, acceptDownloads: true, downloadsPath: downloads,
+  const launch = () => chromium.launchPersistentContext(profile, { locale: 'zh-CN', channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true, acceptDownloads: true, downloadsPath: downloads,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   let context, worker, options, popup;
   const start = async () => {

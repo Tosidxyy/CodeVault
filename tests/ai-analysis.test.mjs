@@ -7,7 +7,7 @@ import { openCurrentProblem } from './helpers.mjs';
 const problem = { id: 'leetcode:1', title: 'Two Sum', slug: 'two-sum', url: 'https://leetcode.cn/problems/two-sum/', platform: 'leetcode', difficulty: 'Easy', tags: [] };
 test('streamed analysis renders safely, stops, saves to one solution and rejects conflicts', { timeout: 90000 }, async () => {
   const extension = resolve('dist');
-  const context = await chromium.launchPersistentContext('', { channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true, args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
+  const context = await chromium.launchPersistentContext('', { locale: 'zh-CN', channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true, args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
     for (let i = 0; i < 250 && !await worker.evaluate(() => !!globalThis.chrome?.permissions); i++) await new Promise((r) => setTimeout(r, 20));

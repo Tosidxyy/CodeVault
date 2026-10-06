@@ -1,3 +1,4 @@
+import { useT, LocaleProvider, LanguageSwitcher } from '../i18n/locale';
 import themeStyles from '../components/theme.css?inline';
 import { Brand, Icon } from '../components/Brand';
 import { getProblemRoute } from '../platforms/leetcode';
@@ -16,6 +17,7 @@ import { problemStorage } from '../database/client';
 import { usePanelLayout } from './usePanelLayout';
 
 function App() {
+  const t = useT();
   const { open, view } = useNavigation();
   const panelLayout = usePanelLayout(open);
   const [ready, setReady] = useState(false);
@@ -56,17 +58,18 @@ function App() {
   return <div ref={panelLayout.root} className="vault" onKeyDown={(event) => {
     if (event.key === 'Escape' && open) { event.stopPropagation(); close(); (event.currentTarget.querySelector('.launcher') as HTMLButtonElement)?.focus(); }
   }}>
-    {open && <section id="codevault-panel" className={`panel${panelLayout.expanded ? ' panel-expanded' : ''}`} aria-label="CodeVault 面板">
-      <header className="panel-header" tabIndex={0} aria-label="浮窗移动区域" title="拖动标题栏移动；聚焦后方向键移动，Shift加速" {...panelLayout.handlers}>{view === 'detail' && <button className="nav-button back" aria-label="← 返回题库" title="返回题库" onClick={() => { setIntent(undefined); change({ view: 'home' }); }}><Icon name="back" /></button>}<h2><Brand /></h2><div className="header-actions"><button className="nav-button" disabled={!panelLayout.ready} aria-label={panelLayout.expanded ? '切换紧凑浮窗' : '展开浮窗'} title={panelLayout.expanded ? '紧凑模式' : '展开模式'} onClick={panelLayout.toggle}><Icon name={panelLayout.expanded ? 'compact' : 'expand'} /></button><button className="nav-button" aria-label="设置" onClick={() => void navigationRequest('settings').catch((reason: Error) => setError(reason.message))}><Icon name="settings" /></button><button className="close" aria-label="关闭面板" onClick={close}><Icon name="close" /></button></div></header>
-      {error && <p role="alert">{error}</p>}
-      {panelLayout.error && <p role="alert">{panelLayout.error}</p>}
+    {open && <section id="codevault-panel" className={`panel${panelLayout.expanded ? ' panel-expanded' : ''}`} aria-label={t("CodeVault 面板")}>
+      <header className="panel-header" tabIndex={0} aria-label={t("浮窗移动区域")} title={t("拖动标题栏移动；聚焦后方向键移动，Shift加速")} {...panelLayout.handlers}>{view === 'detail' && <button className="nav-button back" aria-label={t("← 返回题库")} title={t("返回题库")} onClick={() => { setIntent(undefined); change({ view: 'home' }); }}><Icon name="back" /></button>}<h2><Brand /></h2><div className="header-actions"><button className="nav-button" disabled={!panelLayout.ready} aria-label={panelLayout.expanded ? t('切换紧凑浮窗') : t('展开浮窗')} title={panelLayout.expanded ? t('紧凑模式') : t('展开模式')} onClick={panelLayout.toggle}><Icon name={panelLayout.expanded ? 'compact' : 'expand'} /></button><button className="nav-button" aria-label={t("设置")} onClick={() => void navigationRequest('settings').catch((reason: Error) => setError(reason.message))}><Icon name="settings" /></button><button className="close" aria-label={t("关闭面板")} onClick={close}><Icon name="close" /></button></div></header>
+      {t(error) && <p role="alert">{t(error)}</p>}
+      {t(panelLayout.error) && <p role="alert">{t(panelLayout.error)}</p>}
       <div hidden={view !== 'home'}><SavedProblems currentProblem={current.state.status === 'ready' ? current.state.problem : undefined} onOpenCurrent={() => change({ view: 'detail' })} /></div>
       {view === 'detail' && <><ProblemCard current={current} intent={intent} onIntentHandled={() => setIntent(undefined)} /></>}
-      <footer>题目、解法与笔记保存在本机<br />AI 仅在主动测试或分析时调用</footer>
-      <button className="secondary layout-reset" disabled={!panelLayout.ready} onClick={panelLayout.reset}>恢复默认位置和大小</button>
+      <footer>{t("题目、解法与笔记保存在本机")}<br />{t("AI 仅在主动测试或分析时调用")}</footer>
+      <button className="secondary layout-reset" disabled={!panelLayout.ready} onClick={panelLayout.reset}>{t("恢复默认位置和大小")}</button>
+      <LanguageSwitcher />
     </section>}
     <HoverCapture hidden={open || !ready} onCapture={(next) => { setIntent(next); change({ open: true, view: 'detail' }); }} />
-    <button disabled={!ready || !panelLayout.ready} className="launcher" title="点击打开；拖动图标移动位置" {...panelLayout.launcherHandlers} aria-label={open ? '收起 CodeVault' : '展开 CodeVault'} aria-expanded={open} aria-controls="codevault-panel" onClick={event => { if (!panelLayout.consumeLauncherClick(event.detail === 0)) { if (open) close(); else change({ open: true }); } }}><img draggable={false} src={chrome.runtime.getURL('icons/icon-128.png')} alt="" /></button>
+    <button disabled={!ready || !panelLayout.ready} className="launcher" title={t("点击打开；拖动图标移动位置")} {...panelLayout.launcherHandlers} aria-label={open ? t('收起 CodeVault') : t('展开 CodeVault')} aria-expanded={open} aria-controls="codevault-panel" onClick={event => { if (!panelLayout.consumeLauncherClick(event.detail === 0)) { if (open) close(); else change({ open: true }); } }}><img draggable={false} src={chrome.runtime.getURL('icons/icon-128.png')} alt="" /></button>
   </div>;
 }
 if (!document.getElementById('codevault-root')) {
@@ -75,5 +78,5 @@ if (!document.getElementById('codevault-root')) {
   const shadow = host.attachShadow({ mode: 'open' });
   const style = document.createElement('style'); style.textContent = themeStyles + styles + libraryStyles;
   const container = document.createElement('div'); shadow.append(style, container); document.documentElement.append(host);
-  createRoot(container).render(<App />);
+  createRoot(container).render(<LocaleProvider><App /></LocaleProvider>);
 }

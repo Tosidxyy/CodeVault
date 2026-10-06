@@ -20,7 +20,7 @@ test('manifest references packaged extension entries', async () => {
 });
 
 test('extension loads; popup renders; panel opens without changing host styles', async () => {
-  const context = await chromium.launchPersistentContext('', {
+  const context = await chromium.launchPersistentContext('', { locale: 'zh-CN',
     channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium',
     headless: true,
     args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],

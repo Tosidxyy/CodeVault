@@ -45,7 +45,7 @@ export async function listSolutions(problemId: string): Promise<StoredSolution[]
   });
 }
 
-export async function saveSolution(problem: Problem, draft: SolutionDraft): Promise<StoredSolution> {
+export async function saveSolution(problem: Problem, draft: SolutionDraft, locale: 'zh' | 'en' = 'zh'): Promise<StoredSolution> {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(['problems', 'solutions'], 'readwrite');
@@ -73,9 +73,10 @@ export async function saveSolution(problem: Problem, draft: SolutionDraft): Prom
           try {
             const names = (siblings.result as StoredSolution[]).map((row) => row.name);
             let number = names.length + 1;
-            while (names.includes(`解法 ${number}`)) number++;
+            const prefix = locale === 'en' ? 'Solution' : '解法';
+            while (names.includes(`${prefix} ${number}`)) number++;
             const now = Date.now();
-            result = { ...draft, name: draft.name || `解法 ${number}`, problemId: problem.id, createdAt: now, updatedAt: now };
+            result = { ...draft, name: draft.name || `${prefix} ${number}`, problemId: problem.id, createdAt: now, updatedAt: now };
             solutions.add(result);
             const parent = problems.get(problem.id);
             parent.onsuccess = () => {

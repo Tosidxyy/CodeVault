@@ -11,6 +11,7 @@ CodeVault 是帮助用户整理 LeetCode 题目、代码解法、笔记及可选
 - **认证信息与设置**：可选 AI 服务的 API Key、接口地址、模型与服务商配置用于用户主动发起的 AI 请求。API Key 保存在本机扩展 IndexedDB 中，当前没有额外的静态加密；设置页不回显已保存密钥。
 - **临时界面状态**：搜索词、列表位置、面板状态等用于恢复导航，部分保存在浏览器会话存储，重启浏览器或重新加载扩展后会清空。
 - **窗口布局偏好**：浮窗的相对屏幕边距与紧凑/展开模式保存在本机扩展存储，用于下次打开界面时恢复布局，支持重置。该设置不进行云同步，不附带在AI请求或知识库备份中。
+- **界面语言偏好**：默认依据浏览器首选语言选择中文或英文，用户可手动切换并在本机保存；该偏好用于界面展示和新AI分析的输出语言指令，不改写已有知识库内容。
 
 ## 本地保存与网络请求
 
@@ -49,6 +50,8 @@ v0.2.0 尚不提供完整题库清空、单题删除或数据导出界面。后�
 行为变化时会同步更新本政策及生效日期。基础功能不要求提供姓名、电子邮箱、支付信息或精确位置；请避免在代码、笔记及图片中包含不希望被保存或发送的信息。
 
 ## English summary
+
+The interface language preference is stored locally. It controls interface text and the requested language of new AI analyses; existing user content is unchanged.
 
 Later v0.2 development builds include a local problem recycle bin. Moving a problem there retains associated solutions, analyses, notes, images and legacy backups; the bin does not automatically empty. Confirmed permanent deletion removes those contents, retaining only minimal problem/deletion identifiers and empty note revision markers to prevent stale pages from saving deleted drafts. These markers are omitted from library backups. User-selected backup files may restore deleted content and are not removed by in-extension deletion. Exports include recycle-bin content and exclude AI settings and keys.
 

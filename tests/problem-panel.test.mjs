@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 
 test('problem panel handles metadata, SPA navigation, stale requests, failures and retry', { timeout: 60000 }, async () => {
   const extensionPath = resolve('dist');
-  const context = await chromium.launchPersistentContext('', {
+  const context = await chromium.launchPersistentContext('', { locale: 'zh-CN',
     channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
     args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
   });

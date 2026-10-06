@@ -1,3 +1,4 @@
+import { useT } from '../i18n/locale';
 import { AnalysisMarkdown } from './AnalysisMarkdown';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { Problem } from '../platforms/types';
@@ -9,6 +10,7 @@ import { solutionStorage } from '../database/client';
 import { SolutionMetadataEditor, sourceNames } from './SolutionMetadataEditor';
 
 export function Solutions({ problem, intent, onSaved, onIntentHandled }: { problem: Problem; intent?: CaptureIntent; onSaved: () => void; onIntentHandled: () => void }) {
+  const t = useT();
   const formId = useId();
   const [items, setItems] = useState<StoredSolution[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,41 +103,41 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
     finally { saving.current = false; if (token === sequence.current) setBusy(false); }
   }
 
-  return <section className="card solutions" aria-label="我的解法">
-    <button className="retry capture-button" aria-label={draft ? '重新读取代码' : '读取当前代码'} disabled={busy || !!editing || !!deleting} onClick={() => void capture()}>{draft ? '重新读取代码' : '保存当前代码'}</button>
-    <button className="secondary" disabled={busy || loading} onClick={() => { setEditing(null); setDeleting(null); setError(''); setMessage(''); setRevision((value) => value + 1); }}>刷新解法</button>
-    <h3 className="section-title">解法 <span>{items.length}</span></h3>
-    {editing && <p className="muted">刷新解法会放弃未保存的修改。</p>}
-    {busy && <p role="status">正在处理…</p>}
-    {error && <p role="alert">{error}</p>}
-    {message && <p role="status" className={message.startsWith('已加载') ? 'load-toast' : undefined}>{message}</p>}
-    {confirming && <div role="alertdialog" aria-label="覆盖代码确认"><p>当前编辑器中有不同代码，可能包含未保存的修改。加载历史解法将覆盖当前内容。</p><div className="form-actions"><button className="secondary" onClick={() => { setConfirming(false); confirmation.current?.(false); confirmation.current = undefined; }}>取消加载</button><button className="retry" onClick={() => { setConfirming(false); confirmation.current?.(true); confirmation.current = undefined; }}>继续加载</button></div></div>}
+  return <section className="card solutions" aria-label={t("我的解法")}>
+    <button className="retry capture-button" aria-label={draft ? t('重新读取代码') : t('读取当前代码')} disabled={busy || !!editing || !!deleting} onClick={() => void capture()}>{draft ? t('重新读取代码') : t('保存当前代码')}</button>
+    <button className="secondary" disabled={busy || loading} onClick={() => { setEditing(null); setDeleting(null); setError(''); setMessage(''); setRevision((value) => value + 1); }}>{t("刷新解法")}</button>
+    <h3 className="section-title">{t("解法 ")}<span>{items.length}</span></h3>
+    {editing && <p className="muted">{t("刷新解法会放弃未保存的修改。")}</p>}
+    {busy && <p role="status">{t("正在处理…")}</p>}
+    {t(error) && <p role="alert">{t(error)}</p>}
+    {t(message) && <p role="status" className={message.startsWith('已加载') ? 'load-toast' : undefined}>{t(message)}</p>}
+    {confirming && <div role="alertdialog" aria-label={t("覆盖代码确认")}><p>{t("当前编辑器中有不同代码，可能包含未保存的修改。加载历史解法将覆盖当前内容。")}</p><div className="form-actions"><button className="secondary" onClick={() => { setConfirming(false); confirmation.current?.(false); confirmation.current = undefined; }}>{t("取消加载")}</button><button className="retry" onClick={() => { setConfirming(false); confirmation.current?.(true); confirmation.current = undefined; }}>{t("继续加载")}</button></div></div>}
     {draft && <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
-      <p className="muted">已读取 {draft.language} · {draft.code.length} 字符。保存的是本次快照。</p>
-      <label htmlFor={`${formId}-name`}>解法名称</label><input id={`${formId}-name`} maxLength={100} value={draft.name} disabled={busy} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="留空自动生成：解法 1、解法 2…" />
-      {draft.source === 'reference' && <><label htmlFor={`${formId}-language`}>代码语言</label><select id={`${formId}-language`} value={draft.language} disabled={busy} onChange={(event) => setDraft({ ...draft, language: event.target.value })}><option value="plaintext">请选择语言</option>{[...new Set([draft.language, 'python', 'cpp', 'java', 'javascript', 'typescript', 'c', 'csharp', 'go', 'rust', 'kotlin', 'swift', 'ruby', 'scala', 'php'])].filter((value) => value !== 'plaintext').map((value) => <option key={value} value={value}>{value}</option>)}</select><p className="muted">来源：题解 / 参考 · 保存后自动收藏当前题目</p></>}
-      <label htmlFor={`${formId}-note`}>备注（可选）</label><textarea id={`${formId}-note`} maxLength={5000} value={draft.note} disabled={busy} onChange={(event) => setDraft({ ...draft, note: event.target.value })} />
-      <div className="form-actions"><button className="retry" type="submit" disabled={busy}>保存解法</button><button className="secondary" type="button" disabled={busy} onClick={() => { setDraft(null); setError(''); }}>取消</button></div>
+      <p className="muted">{t("已读取 ")}{draft.language} · {draft.code.length}{t(" 字符。保存的是本次快照。")}</p>
+      <label htmlFor={`${formId}-name`}>{t("解法名称")}</label><input id={`${formId}-name`} maxLength={100} value={draft.name} disabled={busy} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder={t("留空自动生成：解法 1、解法 2…")} />
+      {draft.source === 'reference' && <><label htmlFor={`${formId}-language`}>{t("代码语言")}</label><select id={`${formId}-language`} value={draft.language} disabled={busy} onChange={(event) => setDraft({ ...draft, language: event.target.value })}><option value="plaintext">{t("请选择语言")}</option>{[...new Set([draft.language, 'python', 'cpp', 'java', 'javascript', 'typescript', 'c', 'csharp', 'go', 'rust', 'kotlin', 'swift', 'ruby', 'scala', 'php'])].filter((value) => value !== 'plaintext').map((value) => <option key={value} value={value}>{value}</option>)}</select><p className="muted">{t("来源：题解 / 参考 · 保存后自动收藏当前题目")}</p></>}
+      <label htmlFor={`${formId}-note`}>{t("备注（可选）")}</label><textarea id={`${formId}-note`} maxLength={5000} value={draft.note} disabled={busy} onChange={(event) => setDraft({ ...draft, note: event.target.value })} />
+      <div className="form-actions"><button className="retry" type="submit" disabled={busy}>{t("保存解法")}</button><button className="secondary" type="button" disabled={busy} onClick={() => { setDraft(null); setError(''); }}>{t("取消")}</button></div>
     </form>}
-    {loading ? <p>正在读取解法…</p> : listError ? <><p role="alert">{listError}</p><button className="retry" onClick={() => setRevision((value) => value + 1)}>重试读取解法</button></>
+    {loading ? <p>{t("正在读取解法…")}</p> : t(listError) ? <><p role="alert">{t(listError)}</p><button className="retry" onClick={() => setRevision((value) => value + 1)}>{t("重试读取解法")}</button></>
       : items.length ? <ul className="solution-list">{items.map((solution) => <li key={solution.id}><details>
         <summary>{solution.name}</summary>
-        <p className="muted">{sourceNames[solution.source]} · {new Date(solution.createdAt).toLocaleString()}</p>
+        <p className="muted">{t(sourceNames[solution.source])} · {new Date(solution.createdAt).toLocaleString()}</p>
 
-        {solution.analysis && <section aria-label="已保存的 AI 分析"><strong>AI 分析</strong><AnalysisMarkdown text={solution.analysis} /></section>}
+        {solution.analysis && <section aria-label={t("已保存的 AI 分析")}><strong>{t("AI 分析")}</strong><AnalysisMarkdown text={solution.analysis} /></section>}
         {solution.note && <p className="solution-note">{solution.note}</p>}
-        <a href={solution.sourceUrl} target="_blank" rel="noreferrer">查看来源</a>
+        <a href={solution.sourceUrl} target="_blank" rel="noreferrer">{t("查看来源")}</a>
 
-        <p className="muted">将替换当前代码；可在编辑器按 Ctrl+Z 撤销。</p>
+        <p className="muted">{t("将替换当前代码；可在编辑器按 Ctrl+Z 撤销。")}</p>
         <div className="form-actions">
-          <button className="secondary" disabled={busy || !!draft || !!editing || !!deleting} onClick={() => { setEditing(solution.id); setError(''); setMessage(''); }}>编辑信息</button>
-          <button className="secondary" disabled={busy || !!draft || !!editing || !!deleting} onClick={() => { setDeleting(solution.id); setError(''); setMessage(''); }}>删除解法</button>
+          <button className="secondary" disabled={busy || !!draft || !!editing || !!deleting} onClick={() => { setEditing(solution.id); setError(''); setMessage(''); }}>{t("编辑信息")}</button>
+          <button className="secondary" disabled={busy || !!draft || !!editing || !!deleting} onClick={() => { setDeleting(solution.id); setError(''); setMessage(''); }}>{t("删除解法")}</button>
         </div>
         {editing === solution.id && <SolutionMetadataEditor solution={solution} busy={busy} onSave={(metadata) => void change(solution, metadata)} onCancel={() => { setEditing(null); setError(''); }} />}
-        {deleting === solution.id && <div role="group" aria-label="删除确认">
-          <p>确定永久删除“{solution.name}”？题目收藏和其他版本将保留。</p>
-          <div className="form-actions"><button className="retry" disabled={busy} onClick={() => void change(solution)}>确认删除</button><button className="secondary" disabled={busy} onClick={() => { setDeleting(null); setError(''); }}>取消删除</button></div>
+        {deleting === solution.id && <div role="group" aria-label={t("删除确认")}>
+          <p>{t("确定永久删除“")}{solution.name}{t("”？题目收藏和其他版本将保留。")}</p>
+          <div className="form-actions"><button className="retry" disabled={busy} onClick={() => void change(solution)}>{t("确认删除")}</button><button className="secondary" disabled={busy} onClick={() => { setDeleting(null); setError(''); }}>{t("取消删除")}</button></div>
         </div>}
-      </details><div className="solution-row"><span className="muted">{solution.language} · {new Date(solution.createdAt).toLocaleDateString()} · {sourceNames[solution.source]}</span><button className="secondary" disabled={busy || !!editing || !!deleting} onClick={() => void load(solution)}>加载到编辑器</button></div></li>)}</ul> : <p className="muted">暂无解法。读取代码后即可保存到本机，名称可选。</p>}
+      </details><div className="solution-row"><span className="muted">{solution.language} · {new Date(solution.createdAt).toLocaleDateString()} · {t(sourceNames[solution.source])}</span><button className="secondary" disabled={busy || !!editing || !!deleting} onClick={() => void load(solution)}>{t("加载到编辑器")}</button></div></li>)}</ul> : <p className="muted">{t("暂无解法。读取代码后即可保存到本机，名称可选。")}</p>}
   </section>;
 }

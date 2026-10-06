@@ -1,3 +1,4 @@
+import { useT, getLocale } from '../i18n/locale';
 import { AnalysisMarkdown } from './AnalysisMarkdown';
 import { solutionStorage } from '../database/client';
 import type { StoredSolution } from '../database/types';
@@ -10,6 +11,7 @@ import type { CodeSnapshot } from '../platforms/editor';
 import { getProblemRoute } from '../platforms/leetcode';
 
 export function AiAnalysis({ problem }: { problem: Problem }) {
+  const t = useT();
   const [items, setItems] = useState<StoredSolution[]>([]);
   const [selected, setSelected] = useState('editor');
   const [target, setTarget] = useState<StoredSolution | null>(null);
@@ -85,30 +87,30 @@ export function AiAnalysis({ problem }: { problem: Problem }) {
         if (token !== sequence.current || received) return;
         lock.current = false; setBusy(false); port.current = null; setError('AI 连接已断开，请重试。');
       });
-      connection.postMessage({ problem, code: snapshot.code, language: snapshot.language, revision: config.revision, solutionId: target?.id, solutionRevision: target?.revision ?? 0 });
+      connection.postMessage({ problem, code: snapshot.code, language: snapshot.language, outputLocale: getLocale(), revision: config.revision, solutionId: target?.id, solutionRevision: target?.revision ?? 0 });
     } catch { lock.current = false; setBusy(false); setError('无法连接 AI 服务，请刷新页面重试。'); }
   }
-  return <section className="card solutions ai-analysis" aria-label="AI 代码分析">
-    <strong>AI 解法分析</strong>
-    <button className="secondary" onClick={() => void aiRequest('options').catch((e: Error) => setError(e.message))}>打开 AI 设置</button>
-    <p className="muted">选择解法，生成一份易复习的分析。主动发送代码至所选服务商，可能计费。</p>
-    <label>分析对象<select aria-label="分析对象" disabled={busy} value={selected} onChange={(e) => { sequence.current++; setSelected(e.target.value); setSnapshot(null); setTarget(null); setResult(''); setComplete(false); setError(''); setMessage(''); setConfirmSave(false); }}>
-      <option value="editor">当前编辑器（临时分析）</option>
+  return <section className="card solutions ai-analysis" aria-label={t("AI 代码分析")}>
+    <strong>{t("AI 解法分析")}</strong>
+    <button className="secondary" onClick={() => void aiRequest('options').catch((e: Error) => setError(e.message))}>{t("打开 AI 设置")}</button>
+    <p className="muted">{t("选择解法，生成一份易复习的分析。主动发送代码至所选服务商，可能计费。")}</p>
+    <label>{t("分析对象")}<select aria-label={t("分析对象")} disabled={busy} value={selected} onChange={(e) => { sequence.current++; setSelected(e.target.value); setSnapshot(null); setTarget(null); setResult(''); setComplete(false); setError(''); setMessage(''); setConfirmSave(false); }}>
+      <option value="editor">{t("当前编辑器（临时分析）")}</option>
       {items.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.language}</option>)}
     </select></label>
-    <button className="retry" disabled={busy} onClick={() => void prepare()}>读取待分析代码</button>
+    <button className="retry" disabled={busy} onClick={() => void prepare()}>{t("读取待分析代码")}</button>
     {snapshot && config && <>
-      <p className="muted">将发送题目标题、链接、难度及 {snapshot.language} 代码快照（{snapshot.code.length} 字符），不发送笔记和图片。</p>
-      <p className="problem-url">接口：{config.endpoint}<br />模型：{config.model}</p>
-      <p className="muted">{target ? `解法：${target.name}` : "临时分析如需保存，请先保存解法，再选择该解法分析。"}</p>
-      <button className="retry" disabled={busy} onClick={analyze}>{complete ? '重新生成' : '发送并分析代码'}</button>
+      <p className="muted">{t("将发送题目标题、链接、难度及 ")}{snapshot.language}{t(" 代码快照（")}{snapshot.code.length}{t(" 字符），不发送笔记和图片。")}</p>
+      <p className="problem-url">{t("接口：")}{config.endpoint}<br />{t("模型：")}{config.model}</p>
+      <p className="muted">{target ? t(`解法：${target.name}`) : t("临时分析如需保存，请先保存解法，再选择该解法分析。")}</p>
+      <button className="retry" disabled={busy} onClick={analyze}>{complete ? t('重新生成') : t('发送并分析代码')}</button>
     </>}
-    {busy && <p role="status">正在处理 AI 分析…</p>}
-    {busy && port.current && <button className="secondary" onClick={cancel}>停止生成</button>}
-    {error && <p role="alert">{error}</p>}
-    {message && <p role="status">{message}</p>}
-    {result && <><p className="muted">AI 结果仅供学习参考，尚未运行代码验证；结果不会自动保存。</p><div aria-label="AI 分析结果"><AnalysisMarkdown text={result} /></div></>}
-    {complete && target && <button className="secondary" disabled={busy || !!message || confirmSave} onClick={() => void saveAnalysis()}>保存分析</button>}
-    {confirmSave && <div role="alertdialog" aria-label="覆盖分析确认"><p>该解法已有分析，是否替换？</p><button disabled={busy} onClick={() => void saveAnalysis(true)}>确认替换分析</button><button disabled={busy} onClick={() => setConfirmSave(false)}>取消替换分析</button></div>}
+    {busy && <p role="status">{t("正在处理 AI 分析…")}</p>}
+    {busy && port.current && <button className="secondary" onClick={cancel}>{t("停止生成")}</button>}
+    {t(error) && <p role="alert">{t(error)}</p>}
+    {t(message) && <p role="status">{t(message)}</p>}
+    {result && <><p className="muted">{t("AI 结果仅供学习参考，尚未运行代码验证；结果不会自动保存。")}</p><div aria-label={t("AI 分析结果")}><AnalysisMarkdown text={result} /></div></>}
+    {complete && target && <button className="secondary" disabled={busy || !!message || confirmSave} onClick={() => void saveAnalysis()}>{t("保存分析")}</button>}
+    {confirmSave && <div role="alertdialog" aria-label={t("覆盖分析确认")}><p>{t("该解法已有分析，是否替换？")}</p><button disabled={busy} onClick={() => void saveAnalysis(true)}>{t("确认替换分析")}</button><button disabled={busy} onClick={() => setConfirmSave(false)}>{t("取消替换分析")}</button></div>}
   </section>;
 }

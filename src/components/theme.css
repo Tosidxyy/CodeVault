@@ -3,3 +3,5 @@
 .cv-brand { display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:-.4px; }
 .cv-mark { display:block; width:30px; height:30px; flex-shrink:0; border-radius:8px; object-fit:contain; }
 .cv-icon { width:18px; height:18px; flex-shrink:0; vertical-align:middle; }
+.locale-switch { font:12px/1.5 var(--cv-font); min-height:30px; padding:5px 8px; border:1px solid var(--cv-line); border-radius:8px; background:var(--cv-surface); color:var(--cv-muted); cursor:pointer; }
+.locale-switch:hover { color:var(--cv-accent); background:var(--cv-tint); }

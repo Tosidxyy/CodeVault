@@ -22,7 +22,7 @@ test('library filters compose exact difficulty/tag with search and deterministic
 });
 
 test('combined filters/sorts restore across navigation and reload; narrow layout and reset remain usable', {timeout:90000}, async () => {
-  const extension=resolve('dist');const context=await chromium.launchPersistentContext('',{channel:process.env.CODEVAULT_BROWSER_CHANNEL||'chromium',headless:true,args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
+  const extension=resolve('dist');const context=await chromium.launchPersistentContext('',{ locale: 'zh-CN',channel:process.env.CODEVAULT_BROWSER_CHANNEL||'chromium',headless:true,args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
   const errors=[];context.on('page',page=>{page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});});
   try {
     const worker=context.serviceWorkers()[0]??await context.waitForEvent('serviceworker');const id=new URL(worker.url()).host;

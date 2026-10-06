@@ -27,7 +27,7 @@ test('published v0.2.0 upgrades in place with identical ID, preserved data/confi
     await rm(full, { recursive: true, force: true });
   };
   let context;
-  const launch = () => chromium.launchPersistentContext(profile, { channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
+  const launch = () => chromium.launchPersistentContext(profile, { locale: 'zh-CN', channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   const workerFor = async () => context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
   const snapshot = worker => worker.evaluate(async () => {

@@ -22,7 +22,7 @@ test('v1 migration, hover capture, multiple versions, atomic rollback, idempoten
   await mkdir(resultDir, { recursive: true });
   const profile = await mkdtemp(resolve(resultDir, 'solution-profile-'));
   const extension = resolve('dist');
-  const launch = () => chromium.launchPersistentContext(profile, { channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
+  const launch = () => chromium.launchPersistentContext(profile, { locale: 'zh-CN', channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   let context;
   try {

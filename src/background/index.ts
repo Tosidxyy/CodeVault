@@ -92,13 +92,14 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
         if (!validProblemId(message.problemId)) return { ok: false, error: '题目ID无效。' };
         return { ok: true, data: await listSolutions(message.problemId) };
       case 'solutions.save': {
+        if (message.locale !== undefined && !['zh', 'en'].includes(message.locale as string)) return { ok: false, error: '不支持的界面语言。' };
         let problem, solution;
         try { problem = validateProblem(message.problem); solution = validateSolution(message.solution, problem); }
         catch { return { ok: false, error: '解法数据无效，请检查名称、代码和来源。' }; }
         if (!sender.url?.startsWith(chrome.runtime.getURL('')) && new URL(sender.url!).origin !== new URL(problem.url).origin) {
           return { ok: false, error: '题目来源不匹配，请重新读取代码。' };
         }
-        return { ok: true, data: await saveSolution(problem, solution) };
+        return { ok: true, data: await saveSolution(problem, solution, message.locale === 'en' ? 'en' : 'zh') };
       }
       case 'problems.save': {
         let problem;

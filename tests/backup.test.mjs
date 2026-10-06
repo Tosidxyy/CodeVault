@@ -30,7 +30,7 @@ test('backup format preserves code, analysis, note images/legacy and rejects uns
 
 test('settings backup downloads, previews/cancels, restores atomically, keeps conflicts and excludes AI credentials', { timeout: 90000 }, async () => {
   const extension = resolve('dist');
-  const context = await chromium.launchPersistentContext('', { channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
+  const context = await chromium.launchPersistentContext('', { locale: 'zh-CN', channel: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');

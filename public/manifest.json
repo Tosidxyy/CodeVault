@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "CodeVault",
   "version": "0.2.0",
-  "description": "本地优先的算法知识管理工具。",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
   "minimum_chrome_version": "120",
   "permissions": [
     "storage"
