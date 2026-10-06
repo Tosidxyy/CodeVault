@@ -1,20 +1,16 @@
 import { trustedSender } from './index';
 import { getProblem } from '../database/problems';
 import { validProblemId } from '../database/validation';
-import type { NavigationState } from '../navigation/store';
+import { normalizeNavigation } from '../navigation/state';
 const key = (id?: number) => `navigation:${id ?? 'popup'}`;
-function stateOf(value: unknown): NavigationState {
-  const state = value as NavigationState;
-  if (!state || typeof state.open !== 'boolean' || !['home', 'detail'].includes(state.view) || typeof state.query !== 'string' || state.query.length > 500 || !Number.isFinite(state.scroll) || state.scroll < 0) throw new Error('Invalid state');
-  return { open: state.open, view: state.view, query: state.query, scroll: Math.min(state.scroll, 10000000) };
-}
+const stateOf = normalizeNavigation;
 let queue = Promise.resolve();
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   if (message?.channel !== 'codevault-navigation') return false;
   queue = queue.catch(() => {}).then(async () => {
     if (!trustedSender(sender)) throw new Error('Invalid sender');
     const ownKey = key(sender.tab?.id);
-    if (message.action === 'get') return (await chrome.storage.session.get(ownKey))[ownKey] ?? null;
+    if (message.action === 'get') { const saved = (await chrome.storage.session.get(ownKey))[ownKey]; return saved ? stateOf(saved) : null; }
     if (message.action === 'set') { await chrome.storage.session.set({ [ownKey]: stateOf(message.state) }); return null; }
     if (message.action === 'settings') { await chrome.runtime.openOptionsPage(); return null; }
     if (message.action !== 'navigate' || !validProblemId(message.id)) throw new Error('Invalid action');

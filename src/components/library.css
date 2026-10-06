@@ -23,6 +23,15 @@
 .problem-item-footer .has-note { color:var(--cv-success); }
 .problem-item-arrow { display:none; }
 .library-tools { display:flex; justify-content:flex-end; margin:8px 0; }
+.library-filter-panel { margin:8px 0 12px; font-size:12px; }
+.library-filter-panel summary { cursor:pointer; color:var(--cv-muted); padding:4px 0; }
+.library-filter-panel summary span { color:var(--cv-accent); }
+.library-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:10px 0; }
+.library-filters label { min-width:0; font-size:11px; color:var(--cv-muted); }
+.library-filters select { display:block; width:100%; min-width:0; margin-top:6px; padding:8px; border:1px solid var(--cv-line); border-radius:8px; background:var(--cv-surface); color:var(--cv-text); font:12px/1.5 var(--cv-font); }
+.library-filter-panel > button { min-height:28px; padding:4px 8px; font-size:11px; }
+.panel .library-filters { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.panel .library-filters label:last-child { grid-column:1 / -1; }
 .library-tools button { font-size:11px; color:var(--cv-muted); border:0; padding:4px 8px; min-height:28px; }
 .problem-item-actions { position:absolute; bottom:12px; right:12px; }
 .problem-item-actions button { min-height:24px; padding:3px 7px; font-size:10px; border:0; color:var(--cv-muted); background:transparent; }

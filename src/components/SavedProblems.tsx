@@ -3,10 +3,16 @@ import type { Problem } from '../platforms/types';
 import { problemStorage } from '../database/client';
 import type { LibraryProblem } from '../database/types';
 import { navigationRequest, persistNavigation, useNavigation } from '../navigation/store';
+import { defaultFilters } from '../navigation/state';
+import type { LibraryFilters } from '../navigation/state';
+import { filterLibrary } from './libraryQuery';
 const labels = { Easy: '简单', Medium: '中等', Hard: '困难' };
 export function SavedProblems({ currentProblem, onOpenCurrent }: { currentProblem?: Problem; onOpenCurrent?: () => void }) {
   const view = useNavigation((state) => state.view);
   const query = useNavigation((state) => state.query);
+  const difficulty = useNavigation((state) => state.difficulty);
+  const tag = useNavigation((state) => state.tag);
+  const sort = useNavigation((state) => state.sort);
   const [items, setItems] = useState<LibraryProblem[]>([]);
   const [trash, setTrash] = useState<LibraryProblem[]>([]);
   const [showTrash, setShowTrash] = useState(false);
@@ -46,8 +52,16 @@ export function SavedProblems({ currentProblem, onOpenCurrent }: { currentProble
     } catch (reason) { setError((reason as Error).message); }
     finally { operationLock.current = false; setWorking(false); }
   }
-  const filtered = items.filter((item) => [item.title, ...item.tags, ...item.solutionNames].join(' ').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
-  const filteredTrash = trash.filter((item) => [item.title, ...item.tags, ...item.solutionNames].join(' ').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const filters = { query, difficulty, tag, sort };
+  const filtered = filterLibrary(items, filters);
+  const filteredTrash = filterLibrary(trash, filters);
+  const tags = [...new Set((showTrash ? trash : items).flatMap(item => item.tags))].sort((a, b) => a.localeCompare(b, 'zh-CN'));
+  const hasFilters = difficulty !== 'all' || !!tag || sort !== 'favorite';
+  function changeFilters(patch: Partial<LibraryFilters>) {
+    useNavigation.setState({ ...patch, scroll: 0 });
+    if (list.current) list.current.scrollTop = 0;
+    void persistNavigation().catch(() => {});
+  }
   const recent = [...filtered].filter((item) => item.lastOpenedAt).sort((a, b) => b.lastOpenedAt! - a.lastOpenedAt!).slice(0, 3);
   const select = async (item: LibraryProblem) => {
     setNavigating(true); setError('');
@@ -58,7 +72,13 @@ export function SavedProblems({ currentProblem, onOpenCurrent }: { currentProble
   return <section className="library" aria-label="我的收藏" aria-busy={loading || navigating}>
     <h1 className="library-title">{showTrash ? '回收站' : '我的算法库'}</h1>
     <p className="library-intro">{showTrash ? '找回移出的题目，保留你的积累。' : '把每次练习，变成可以复习的积累。'}</p>
-    <label className="library-search">{showTrash ? '搜索回收站' : '搜索题库'}<input type="search" aria-label={showTrash ? '搜索回收站' : '搜索收藏题目'} placeholder="搜索题目、标签、解法名称" value={query} maxLength={500} onChange={(event) => { useNavigation.setState({ query: event.target.value, scroll: 0 }); if (list.current) list.current.scrollTop = 0; void persistNavigation().catch(() => {}); }} /></label>
+    <label className="library-search">{showTrash ? '搜索回收站' : '搜索题库'}<input type="search" aria-label={showTrash ? '搜索回收站' : '搜索收藏题目'} placeholder="搜索题目、标签、解法名称" value={query} maxLength={500} onChange={event => changeFilters({ query: event.target.value })} /></label>
+    <details className="library-filter-panel" open={hasFilters}><summary>筛选与排序{hasFilters && <span> · 已启用</span>}</summary><div className="library-filters">
+      <label>难度<select aria-label="难度筛选" value={difficulty} onChange={event => changeFilters({ difficulty: event.target.value as LibraryFilters['difficulty'] })}><option value="all">全部难度</option>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label>标签<select aria-label="标签筛选" value={tag} onChange={event => changeFilters({ tag: event.target.value })}><option value="">全部标签</option>{tag && !tags.includes(tag) && <option value={tag}>{tag}（无匹配）</option>}{tags.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+      <label>排序<select aria-label="排序方式" value={sort} onChange={event => changeFilters({ sort: event.target.value as LibraryFilters['sort'] })}><option value="favorite">收藏时间</option><option value="recent">最近访问</option><option value="title">题目名称</option></select></label>
+    </div><button onClick={() => changeFilters({ difficulty: defaultFilters.difficulty, tag: defaultFilters.tag, sort: defaultFilters.sort })}>重置筛选</button></details>
+    {(hasFilters || query.trim()) && <p className="library-filter-count">匹配 {showTrash ? filteredTrash.length : filtered.length} / {showTrash ? trash.length : items.length} 个题目</p>}
     {onOpenCurrent && !showTrash && <div className="current-problem-card"><span>正在浏览</span><div>{currentProblem && <strong>{currentProblem.title}</strong>}<button onClick={onOpenCurrent}>查看当前题目 →</button></div></div>}
     <div className="library-tools"><button disabled={working} onClick={() => { setShowTrash(value => !value); setPending(undefined); setNotice(''); }}>{showTrash ? '返回收藏' : `回收站（${trash.length}）`}</button></div>
     {error && <p role="alert">{error}</p>}
