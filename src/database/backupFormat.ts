@@ -1,10 +1,10 @@
 import { validateProblem, validateMetadata, validSolutionTarget } from './validation.ts';
 import { validateBlocks } from './noteBlocks.ts';
-import { imagePrefix, validateNoteImages } from './noteImages.ts';
+import { imagePrefix, imageIdPattern, validateNoteImages } from './noteImages.ts';
 import type { StoredProblem, StoredSolution, StoredNote } from './types';
 
 export const maxBackupBytes = 64 * 1024 * 1024;
-export interface Backup { format: 'codevault-backup'; version: 1; exportedAt: string; problems: StoredProblem[]; solutions: StoredSolution[]; notes: StoredNote[] }
+export interface Backup { format: 'codevault-backup'; version: 2; exportedAt: string; problems: StoredProblem[]; solutions: StoredSolution[]; notes: StoredNote[] }
 const record = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('备份记录无效。');
   return value as Record<string, unknown>;
@@ -23,12 +23,14 @@ function unique<T>(values: T[], id: (value: T) => string): T[] {
 }
 export function validateBackup(value: unknown): Backup {
   const root = record(value);
-  if (root.format !== 'codevault-backup' || root.version !== 1 || typeof root.exportedAt !== 'string' || root.exportedAt.length > 40 || !Number.isFinite(Date.parse(root.exportedAt))) throw new Error('不支持的备份格式或版本。');
+  if (root.format !== 'codevault-backup' || ![1, 2].includes(root.version as number) || typeof root.exportedAt !== 'string' || root.exportedAt.length > 40 || !Number.isFinite(Date.parse(root.exportedAt))) throw new Error('不支持的备份格式或版本。');
   for (const name of ['problems', 'solutions', 'notes']) if (!Array.isArray(root[name]) || (root[name] as unknown[]).length > 20000) throw new Error('备份记录数量无效或超过20000条。');
   const problems = unique((root.problems as unknown[]).map(value => {
     const row = record(value), problem = validateProblem(row);
+    if (row.purged || (row.deletedAt !== undefined && (root.version !== 2 || integer(row.deletedAt) === 0 || typeof row.trashToken !== 'string' || !imageIdPattern.test(row.trashToken)))) throw new Error('备份回收站状态无效。');
     return { ...problem, createdAt: integer(row.createdAt), updatedAt: integer(row.updatedAt),
-      favoriteAt: integer(row.favoriteAt ?? row.createdAt), lastOpenedAt: row.lastOpenedAt == null ? null : integer(row.lastOpenedAt) };
+      favoriteAt: integer(row.favoriteAt ?? row.createdAt), lastOpenedAt: row.lastOpenedAt == null ? null : integer(row.lastOpenedAt),
+      ...(row.deletedAt === undefined ? {} : { deletedAt: integer(row.deletedAt), trashToken: row.trashToken as string }) };
   }), row => row.id);
   const parents = new Set(problems.map(row => row.id));
   const solutions = unique((root.solutions as unknown[]).map(value => {
@@ -51,7 +53,7 @@ export function validateBackup(value: unknown): Backup {
     }
     return { ...document, problemId: row.problemId as string, markdown: boundedText(row.markdown ?? '', 20000), revision: integer(row.revision), updatedAt: integer(row.updatedAt), ...(legacy ? { legacy } : {}) };
   }), row => row.problemId);
-  return { format: 'codevault-backup', version: 1, exportedAt: root.exportedAt, problems, solutions, notes };
+  return { format: 'codevault-backup', version: 2, exportedAt: root.exportedAt, problems, solutions, notes };
 }
 export function parseBackup(text: string): Backup {
   if (new TextEncoder().encode(text).byteLength > maxBackupBytes) throw new Error('备份文件不能超过64MB。');

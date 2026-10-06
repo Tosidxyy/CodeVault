@@ -40,11 +40,11 @@ export function DataSettings() {
     finally { setBusy(false); }
   }
   return <section className="data-settings" aria-label="数据备份">
-    <h2>数据备份</h2><p>将题目、解法、图文笔记和已保存分析备份到本地文件，不包含 API Key 或 AI 配置。</p>
+    <h2>数据备份</h2><p>将题目（含回收站）、解法、图文笔记和已保存分析备份到本地文件，不包含 API Key 或 AI 配置。</p>
     <p>导出前请确认笔记显示“已保存”。备份文件未加密，请妥善保管；单份最多64MB。</p>
     <div className="data-actions"><button disabled={busy || !!backup} onClick={() => void download()}>导出备份</button><button disabled={busy} onClick={() => fileInput.current?.click()}>选择备份文件</button></div>
     <input hidden ref={fileInput} type="file" accept=".json,application/json" aria-label="选择数据备份" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; void preview(file); }} />
-    {backup && <div className="import-preview" role="group" aria-label="导入确认"><strong>备份预览</strong><p>{backup.problems.length} 个题目 · {backup.solutions.length} 个解法 · {backup.notes.length} 份笔记</p><p>仅导入缺失记录；同ID的现有内容优先保留，不会被旧备份覆盖。</p><div className="data-actions"><button disabled={busy} onClick={() => void restore()}>确认合并导入</button><button disabled={busy} onClick={() => setBackup(undefined)}>取消导入</button></div></div>}
+    {backup && <div className="import-preview" role="group" aria-label="导入确认"><strong>备份预览</strong><p>{backup.problems.length} 个题目 · {backup.solutions.length} 个解法 · {backup.notes.length} 份笔记</p>{backup.problems.some(row => row.deletedAt) && <p>其中 {backup.problems.filter(row => row.deletedAt).length} 个题目将保留回收站状态。</p>}<p>仅导入缺失记录；同ID的现有内容优先保留，不会被旧备份覆盖。</p><div className="data-actions"><button disabled={busy} onClick={() => void restore()}>确认合并导入</button><button disabled={busy} onClick={() => setBackup(undefined)}>取消导入</button></div></div>}
     {busy && <p role="status">正在处理备份…</p>}{message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
   </section>;
 }

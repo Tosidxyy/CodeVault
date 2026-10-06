@@ -19,7 +19,10 @@ test('backup format preserves code, analysis, note images/legacy and rejects uns
   assert.equal(parsed.solutions[0].analysis, solution.analysis);
   assert.deepEqual(parsed.notes[0].legacy, note.legacy);
   assert.deepEqual(parseBackup(JSON.stringify(parsed)), parsed);
-  for (const patch of [{ version: 2 }, { problems: [problem, problem] }, { problems: [] }, { notes: [{ ...note, images: {} }] },
+  const trashed = validateBackup({ ...sample(), version: 2, problems: [{ ...problem, deletedAt: 123, trashToken: id }] });
+  assert.equal(trashed.problems[0].deletedAt, 123); assert.equal(trashed.problems[0].trashToken, id);
+  assert.throws(() => validateBackup({ ...sample(), version: 2, problems: [{ ...problem, deletedAt: 123 }] }));
+  for (const patch of [{ version: 99 }, { problems: [problem, problem] }, { problems: [] }, { notes: [{ ...note, images: {} }] },
     { solutions: [{ ...solution, sourceUrl: 'javascript:alert(1)' }] }, { solutions: [{ ...solution, revision: Number.MAX_SAFE_INTEGER }] },
     { notes: [{ ...note, legacy: { markdown: 'x', images: { [id]: 'https://evil.com/img.png' } } }] }]) assert.throws(() => validateBackup({ ...sample(), ...patch }));
   assert.throws(() => parseBackup('{broken'));

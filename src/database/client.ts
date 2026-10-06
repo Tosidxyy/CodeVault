@@ -11,11 +11,15 @@ async function send<T>(request: StorageRequest): Promise<T> {
   try { response = await chrome.runtime.sendMessage(request) as StorageResponse; }
   catch { throw new Error('无法连接本地知识库，请重新加载扩展并刷新页面。'); }
   if (!response || !response.ok) throw new Error(response?.error || '本地存储暂时不可用，请重试。');
-  if (/\.(save|saveBlocks|update|delete)$/.test(request.action)) { window.dispatchEvent(new Event('codevault-data-saved')); window.dispatchEvent(new Event('codevault-library-changed')); }
+  if (/\.(save|saveBlocks|update|delete|trash|restore|purge)$/.test(request.action)) { window.dispatchEvent(new Event('codevault-data-saved')); window.dispatchEvent(new Event('codevault-library-changed')); }
   return response.data as T;
 }
 
 export const problemStorage = {
+  trashList: () => send<LibraryProblem[]>({ channel: 'codevault', action: 'trash.list' }),
+  trash: (id: string) => send<StoredProblem>({ channel: 'codevault', action: 'problems.trash', id }),
+  restore: (id: string, token: string) => send<StoredProblem>({ channel: 'codevault', action: 'trash.restore', id, token }),
+  purge: (id: string, token: string) => send<null>({ channel: 'codevault', action: 'trash.purge', id, token }),
   library: () => send<LibraryProblem[]>({ channel: 'codevault', action: 'library.list' }),
   visit: (id: string) => send<StoredProblem | null>({ channel: 'codevault', action: 'problems.visit', id }),
   get: (id: string) => send<StoredProblem | null>({ channel: 'codevault', action: 'problems.get', id }),

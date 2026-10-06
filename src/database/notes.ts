@@ -1,4 +1,4 @@
-import { openDatabase } from './problems';
+import { openDatabase, ProblemTrashedError } from './problems';
 import type { Problem } from '../platforms/types';
 import { migrateMarkdown } from './noteBlocks';
 import type { NoteBlock, StoredNote } from './types';
@@ -26,8 +26,11 @@ export async function saveBlocks(problem: Problem, blocks: NoteBlock[], revision
     const notes = tx.objectStore('notes');
     let result: StoredNote;
     let conflict = false;
+    let trashed = false;
     tx.oncomplete = () => resolve(result);
-    tx.onabort = () => reject(conflict ? new NoteConflictError('笔记已在其他页面更新。请先复制当前内容，再读取最新笔记。') : tx.error ?? new Error('Save aborted'));
+    tx.onabort = () => reject(trashed ? new ProblemTrashedError() : conflict ? new NoteConflictError('笔记已在其他页面更新。请先复制当前内容，再读取最新笔记。') : tx.error ?? new Error('Save aborted'));
+    const guard = tx.objectStore('problems').get(problem.id);
+    guard.onsuccess = () => { if (guard.result?.deletedAt) { trashed = true; tx.abort(); } };
     const request = notes.get(problem.id);
     request.onsuccess = () => {
       try {
@@ -39,6 +42,7 @@ export async function saveBlocks(problem: Problem, blocks: NoteBlock[], revision
         }
         const now = Math.max(Date.now(), (previous?.updatedAt ?? 0) + 1);
         result = { ...previous, problemId: problem.id, blocks, markdown: markdown ?? previous?.markdown ?? '', images, revision: revision + 1, updatedAt: now };
+        delete (result as StoredNote & { purged?: boolean }).purged;
         if (markdown !== undefined && !result.legacy) result.legacy = { markdown, images };
         notes.put(result);
         const problems = tx.objectStore('problems');

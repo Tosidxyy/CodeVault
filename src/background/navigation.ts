@@ -19,7 +19,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     if (message.action === 'settings') { await chrome.runtime.openOptionsPage(); return null; }
     if (message.action !== 'navigate' || !validProblemId(message.id)) throw new Error('Invalid action');
     const problem = await getProblem(message.id);
-    if (!problem) throw new Error('Missing problem');
+    if (!problem || problem.deletedAt) throw new Error('Missing problem');
     const state = { ...stateOf(message.state), open: true, view: 'detail' };
     const tabs = await chrome.tabs.query({ url: ['https://leetcode.cn/*', 'https://leetcode.com/*'] });
     const currentWindow = await chrome.windows.getLastFocused();

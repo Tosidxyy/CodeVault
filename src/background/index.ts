@@ -1,7 +1,8 @@
 import { validateBlocks } from '../database/noteBlocks';
 import { imageIdPattern } from '../database/noteImages';
 import { saveNoteSession, waitNoteSaves } from '../database/noteSessions';
-import { getProblem, listProblems, saveProblem, visitProblem } from '../database/problems';
+import { getProblem, listProblems, saveProblem, visitProblem, ProblemTrashedError } from '../database/problems';
+import { changeTrash, TrashConflictError } from '../database/trash';
 import { listLibrary } from '../database/library';
 import './navigation';
 import '../ai/background';
@@ -24,6 +25,13 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
   if (!trustedSender(sender)) return { ok: false, error: '不支持的请求来源。' };
   try {
     switch (message.action) {
+      case 'trash.list': return { ok: true, data: await listLibrary(true) };
+      case 'problems.trash':
+      case 'trash.restore':
+      case 'trash.purge': {
+        if (!validProblemId(message.id) || (message.action !== 'problems.trash' && (typeof message.token !== 'string' || !imageIdPattern.test(message.token)))) return { ok: false, error: '回收站目标无效。' };
+        return { ok: true, data: await changeTrash(message.id, message.action === 'problems.trash' ? 'trash' : message.action === 'trash.restore' ? 'restore' : 'purge', message.token as string | undefined) };
+      }
       case 'library.list':
         return { ok: true, data: await listLibrary() };
       case 'problems.visit':
@@ -104,7 +112,7 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
       }
       default: return { ok: false, error: '不支持的存储操作。' };
     }
-  } catch (error) { return { ok: false, error: error instanceof SolutionConflictError || error instanceof NoteConflictError ? error.message : '本地存储暂时不可用，请重试。' }; }
+  } catch (error) { return { ok: false, error: error instanceof SolutionConflictError || error instanceof NoteConflictError || error instanceof ProblemTrashedError || error instanceof TrashConflictError ? error.message : '本地存储暂时不可用，请重试。' }; }
 }
 
 // Register synchronously and keep the channel open until the IDB transaction completes.

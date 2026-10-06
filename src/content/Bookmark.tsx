@@ -13,7 +13,7 @@ export function Bookmark({ problem }: { problem: Problem }) {
     const token = ++generation.current;
     setState({ status: 'checking', saved: false });
     void problemStorage.get(problem.id).then((saved) => {
-      if (generation.current === token) setState({ status: 'ready', saved: !!saved });
+      if (generation.current === token) setState({ status: 'ready', saved: !!saved && !saved.deletedAt, error: saved?.deletedAt ? '题目已在回收站，请在题库恢复后编辑。' : undefined });
     }).catch((error: Error) => {
       if (generation.current === token) setState({ status: 'error', saved: false, error: error.message });
     });

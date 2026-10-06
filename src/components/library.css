@@ -10,7 +10,7 @@
 .library-heading button { border:0; color:var(--cv-muted); font-size:11px; padding:4px 6px; }
 .library-scroll { max-height:min(480px,calc(100dvh - 440px)); min-height:100px; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; }
 .library ul { display:grid; gap:10px; padding:0 2px 2px; margin:12px 0 0; list-style:none; }
-.library li { padding:0; min-width:0; }
+.library li { position:relative; padding:0; min-width:0; }
 .library .problem-item { display:block; padding:14px 16px; border:1px solid var(--cv-line); border-radius:12px; background:var(--cv-surface); color:var(--cv-text); text-decoration:none; overflow-wrap:anywhere; transition:background .15s,border-color .15s; }
 .library .problem-item:hover, .library .problem-item:focus-visible { background:#fffaf5; border-color:#e4c5a8; }
 .problem-item-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
@@ -19,9 +19,16 @@
 .library .difficulty.easy { color:#267553; background:#eff7f1; }
 .library .difficulty.medium { color:#94651f; background:#fff5df; }
 .library .difficulty.hard { color:#a7382f; background:#fff0ed; }
-.problem-item-footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; font-size:11px; color:var(--cv-muted); }
+.problem-item-footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; padding-right:82px; font-size:11px; color:var(--cv-muted); }
 .problem-item-footer .has-note { color:var(--cv-success); }
-.problem-item-arrow { margin-left:auto; color:var(--cv-accent); }
+.problem-item-arrow { display:none; }
+.library-tools { display:flex; justify-content:flex-end; margin:8px 0; }
+.library-tools button { font-size:11px; color:var(--cv-muted); border:0; padding:4px 8px; min-height:28px; }
+.problem-item-actions { position:absolute; bottom:12px; right:12px; }
+.problem-item-actions button { min-height:24px; padding:3px 7px; font-size:10px; border:0; color:var(--cv-muted); background:transparent; }
+.trash-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.trash-confirm { margin:12px 0; padding:16px; border:1px solid var(--cv-line); border-radius:12px; background:var(--cv-tint); font-size:13px; }
+.trash-confirm > div { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
 .library p { margin:8px 0 0; font-size:11px; color:var(--cv-muted); overflow-wrap:anywhere; }
 .library [role=alert] { color:#a7382f; }
 .recent-list { display:flex; flex-wrap:wrap; gap:8px; }

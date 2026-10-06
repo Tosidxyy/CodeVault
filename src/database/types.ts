@@ -5,6 +5,9 @@ export interface StoredProblem extends Problem {
   updatedAt: number;
   favoriteAt?: number;
   lastOpenedAt?: number | null;
+  deletedAt?: number;
+  trashToken?: string;
+  purged?: boolean;
 }
 
 export interface LibraryProblem extends StoredProblem {
@@ -47,6 +50,9 @@ export interface StoredNote {
 }
 
 export type StorageRequest =
+  | { channel: 'codevault'; action: 'trash.list' }
+  | { channel: 'codevault'; action: 'problems.trash'; id: string }
+  | { channel: 'codevault'; action: 'trash.restore' | 'trash.purge'; id: string; token: string }
   | { channel: 'codevault'; action: 'library.list' }
   | { channel: 'codevault'; action: 'problems.visit'; id: string }
   | { channel: 'codevault'; action: 'notes.saveBlocks'; problem: Problem; blocks: NoteBlock[]; images: Record<string, string>; revision: number; sessionId: string }

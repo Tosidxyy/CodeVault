@@ -35,7 +35,9 @@ CodeVault 对用户数据的使用遵守 Chrome Web Store User Data Policy，包
 
 已保存内容会保留在本机，直到用户修改、删除相关记录或清除扩展存储。可编辑笔记、删除单个解法、删除笔记图片，并在设置页清除 AI 配置；清除配置不会删除服务商账户或撤销其已收到的数据。旧版笔记迁移保留只读原文和附件备份，因此删除当前文字或图片不保证同时清除迁移备份。
 
-v0.2.0 尚不提供完整题库清空、单题删除或数据导出界面。后续v0.2开发构建提供用户主动的本地JSON备份导出/合并导入：包含已保存的题目、解法、分析、笔记、图片及迁移备份，不包含AI配置或API Key，文件不经服务器传输。备份文件未加密，保存位置由用户选择，用户可通过文件管理器删除；导入只补齐缺失记录，保留已有内容。
+后续v0.2开发构建提供题目回收站：移入回收站仅隐藏收藏入口，全部关联内容继续保留在本机，且不自动清空。恢复保留原内容；确认永久删除会移除题目标题、来源信息、解法、分析、笔记、图片及迁移备份。为阻止旧页面的延迟保存，继续保留最小题目ID/删除标记及不含文字图片的笔记版本标记，直到清除扩展存储；这些标记不出现在知识库备份中。
+
+v0.2.0 尚不提供完整题库清空、单题删除或数据导出界面。后续v0.2开发构建提供用户主动的本地JSON备份导出/合并导入：包含已保存的题目（含回收站）、解法、分析、笔记、图片及迁移备份，不包含AI配置或API Key，文件不经服务器传输。备份文件未加密，保存位置由用户选择，用户可通过文件管理器删除；导入保留现有内容，之前永久删除的内容可通过用户确认导入已有备份恢复。扩展内删除不会自动删除已导出的文件。
 
 若要彻底清除本机扩展数据，可卸载扩展或通过浏览器扩展开发工具清除该扩展来源的存储；这会丢失本地知识库。支持备份的版本可用此前保存的文件恢复。仅禁用扩展不等于删除数据；卸载不会同时删除用户导出的备份文件。操作系统或浏览器外部备份不由 CodeVault 管理。
 
@@ -46,6 +48,8 @@ v0.2.0 尚不提供完整题库清空、单题删除或数据导出界面。后�
 行为变化时会同步更新本政策及生效日期。基础功能不要求提供姓名、电子邮箱、支付信息或精确位置；请避免在代码、笔记及图片中包含不希望被保存或发送的信息。
 
 ## English summary
+
+Later v0.2 development builds include a local problem recycle bin. Moving a problem there retains associated solutions, analyses, notes, images and legacy backups; the bin does not automatically empty. Confirmed permanent deletion removes those contents, retaining only minimal problem/deletion identifiers and empty note revision markers to prevent stale pages from saving deleted drafts. These markers are omitted from library backups. User-selected backup files may restore deleted content and are not removed by in-extension deletion. Exports include recycle-bin content and exclude AI settings and keys.
 
 CodeVault stores your LeetCode bookmarks, solution snapshots, notes, images and saved analyses locally in the extension's IndexedDB. It also processes the current LeetCode URL and stores recent visits to saved problems for navigation; it does not read your general browser history. There is no CodeVault account, backend, advertising or telemetry in the extension.
 
