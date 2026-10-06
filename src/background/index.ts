@@ -5,6 +5,7 @@ import { getProblem, listProblems, saveProblem, visitProblem, ProblemTrashedErro
 import { changeTrash, TrashConflictError } from '../database/trash';
 import { listLibrary } from '../database/library';
 import './navigation';
+import './panelLayout';
 import '../ai/background';
 import { validateProblem, validProblemId, validateSolution, validSolutionTarget, validateMetadata } from '../database/validation';
 import { listSolutions, saveSolution, changeSolution, SolutionConflictError } from '../database/solutions';
