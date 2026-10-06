@@ -52,14 +52,13 @@ export function AiSettings() {
   }
   const inputClass = 'mt-1 block w-full rounded border p-2';
   return <section className="ai-settings" aria-label="AI 设置">
-    <h2 className="text-lg font-semibold">AI 设置</h2>
-    <p className="mt-2 text-sm text-neutral-600">API Key 仅保存在当前浏览器扩展中，不加密、不云同步、不上传 CodeVault 服务器，默认不包含在数据导出中。分析会发送题目信息与代码给所选服务商。</p>
+    <h1>连接你的 AI 助手</h1>
+    <p className="settings-intro">配置一次，在题目中分析与复习解法。</p>
     <p className="mt-2 text-sm">{saved ? `已配置：${saved.model} · API Key 已保存（不回显）` : '尚未配置 AI。'}</p>
-    <form onSubmit={(event) => { event.preventDefault(); void run('save'); }} className="mt-4 space-y-3">
-      <label className="block">AI 服务<select aria-label="AI 服务" className={inputClass} value={provider} disabled={busy} onChange={(e) => changeProvider(e.target.value as AiProvider)}>
-        {Object.entries(providers).map(([id, item]) => <option key={id} value={id}>{item.name}</option>)}
-        <option value="custom">自定义兼容接口（高级）</option>
-      </select></label>
+    <form onSubmit={(event) => { event.preventDefault(); void run('save'); }}>
+      <fieldset className="provider-field"><legend>AI 服务</legend><div className="provider-options">
+        {(['deepseek', 'openai', 'anthropic', 'custom'] as const).map((id) => <button key={id} type="button" aria-pressed={provider === id} disabled={busy} onClick={() => changeProvider(id)}>{id === 'custom' ? '自定义兼容接口' : id === 'anthropic' ? 'Claude' : providers[id].name}</button>)}
+      </div></fieldset>
       {provider === 'custom' ? <fieldset className="space-y-3 rounded border p-3"><legend>高级设置 · OpenAI 兼容接口</legend>
         <label className="block">完整接口地址<input className={inputClass} type="url" required maxLength={2000} value={endpoint} disabled={busy} onChange={(e) => { setEndpoint(e.target.value); resetFeedback(); }} /></label>
         <p className="text-xs text-neutral-500">仅支持 HTTPS，地址以 /chat/completions 结尾。授权仅用于此接口域名。</p>
@@ -68,13 +67,15 @@ export function AiSettings() {
         {providers[provider].models.map((id) => <option key={id} value={id}>{id}</option>)}
       </select></label>}
       <label className="block">API Key<input className={inputClass} type="password" autoComplete="off" maxLength={512} value={apiKey} disabled={busy} onChange={(e) => { setApiKey(e.target.value); resetFeedback(); }} /></label>
-      <p className="text-xs text-neutral-500">保存时需重新输入 Key；配置未改变时可直接测试已保存的 Key。切换服务商会清空输入的 Key。</p>
-      <p className="text-xs text-neutral-500">测试连接会发送一条短消息，不含题目或代码，服务商可能计费。测试和分析请求均有25秒超时。</p>
+      <div className="credential-notice"><strong>密钥保存在当前浏览器</strong><p>当前未额外加密，不云同步。只有你点击测试或发送分析时，才直接连接所选服务商。</p></div>
+      <p className="settings-cost">测试连接会发送短消息，不含题目或代码，服务商可能计费。</p>
       <div className="flex flex-wrap gap-3">
         <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={busy} type="button" onClick={() => void run('test')}>{testing ? '测试中…' : '测试连接'}</button>
         <button className="rounded bg-neutral-900 px-4 py-2 text-white disabled:opacity-50" disabled={busy} type="submit">授权并保存 AI 配置</button>
-        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={busy || !saved} type="button" onClick={() => void clear()}>清除 AI 配置</button>
       </div>
+      <div className="ai-data-notice"><strong>发送前，你始终拥有选择权</strong><p>分析发送题目信息、语言与所选代码，不附带笔记和图片。测试连接也可能产生服务商费用。</p></div>
+      <details className="settings-help"><summary>使用与密钥说明</summary><p>保存时需重新输入 Key；配置未改变时可直接测试已保存的 Key。切换服务商会清空输入的 Key。测试和分析请求均有25秒超时。</p></details>
+      <button className="clear-config" disabled={busy || !saved} type="button" onClick={() => void clear()}>清除 AI 配置</button>
     </form>
     {error && <p className="mt-3 text-red-700" role="alert">{error}</p>}
     {message && <p className="mt-3" role="status">{message}</p>}

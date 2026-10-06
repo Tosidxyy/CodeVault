@@ -57,7 +57,7 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     const options = await context.newPage();
     await options.goto(`${base}/options.html`);
     await options.evaluate(() => { chrome.permissions.request = async (value) => { window.requestedOrigins = value.origins; return true; }; });
-    await options.getByLabel('AI 服务', { exact: true }).selectOption('custom');
+    await options.getByRole('button', { name: '自定义兼容接口', exact: true }).click();
     await options.getByLabel('完整接口地址').fill(config.endpoint);
     await options.getByLabel('模型名称').fill(config.model);
     await options.getByLabel('API Key', { exact: true }).fill(config.apiKey);
@@ -68,7 +68,7 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     await options.reload();
     await options.getByText(/API Key 已保存（不回显）/).waitFor();
     assert.equal(await options.getByLabel('API Key', { exact: true }).inputValue(), '');
-    await options.getByRole('heading', { name: 'AI 设置' }).scrollIntoViewIfNeeded();
+    await options.getByRole('heading', { name: '连接你的 AI 助手' }).scrollIntoViewIfNeeded();
     await options.screenshot({ path: resolve('test-results/ai-settings.png') });
     await options.evaluate(() => { chrome.permissions.request = async () => true; });
     await options.getByRole('button', { name: '测试连接', exact: true }).click();
@@ -130,11 +130,11 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     assert.equal((await send('status')).data, null);
     await button('读取待分析代码').click(); await page.getByRole('alert').filter({ hasText: '请先打开 AI 设置' }).waitFor();
     // New presets keep custom URL controls out of the ordinary flow.
-    await options.getByLabel('AI 服务', { exact: true }).selectOption('openai');
+    await options.getByRole('button', { name: 'OpenAI', exact: true }).click();
     assert.equal(await options.getByLabel('完整接口地址').count(), 0);
     assert.equal(await options.getByLabel('模型', { exact: true }).inputValue(), 'gpt-4.1-mini');
     await options.getByLabel('API Key', { exact: true }).fill('temporary-key');
-    await options.getByLabel('AI 服务', { exact: true }).selectOption('deepseek');
+    await options.getByRole('button', { name: 'DeepSeek', exact: true }).click();
     assert.equal(await options.getByLabel('API Key', { exact: true }).inputValue(), '');
     await options.getByLabel('API Key', { exact: true }).fill('temporary-key');
     await worker.evaluate(() => { globalThis.fixture.mode = '401'; });
@@ -145,7 +145,7 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     await options.getByRole('button', { name: '测试连接', exact: true }).click();
     await options.getByText('✓ API连接成功。测试不会自动保存配置。', { exact: true }).waitFor();
     assert.equal((await send('status')).data, null);
-    await options.getByRole('heading', { name: 'AI 设置' }).scrollIntoViewIfNeeded();
+    await options.getByRole('heading', { name: '连接你的 AI 助手' }).scrollIntoViewIfNeeded();
     await options.screenshot({ path: resolve('test-results/ai-presets.png') });
     // Seed the v0.1 record without provider and verify read-time compatibility.
     await worker.evaluate(async (legacy) => {
@@ -161,7 +161,7 @@ test('AI settings hide keys; analysis is explicit, cancelable and bound to confi
     }, config);
     await options.reload();
     await options.getByText(/API Key 已保存（不回显）/).waitFor();
-    assert.equal(await options.getByLabel('AI 服务', { exact: true }).inputValue(), 'custom');
+    assert.equal(await options.getByRole('button', { name: '自定义兼容接口', exact: true }).getAttribute('aria-pressed'), 'true');
     assert.equal(await options.getByLabel('完整接口地址').inputValue(), config.endpoint);
     assert.equal(await options.getByLabel('模型名称').inputValue(), config.model);
     assert.equal((await send('status')).data.revision, config.revision);

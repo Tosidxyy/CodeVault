@@ -102,9 +102,9 @@ export function Solutions({ problem, intent, onSaved, onIntentHandled }: { probl
   }
 
   return <section className="card solutions" aria-label="我的解法">
-    <strong>我的解法</strong>
-    <button className="retry" disabled={busy || !!editing || !!deleting} onClick={() => void capture()}>{draft ? '重新读取代码' : '读取当前代码'}</button>
+    <button className="retry capture-button" aria-label={draft ? '重新读取代码' : '读取当前代码'} disabled={busy || !!editing || !!deleting} onClick={() => void capture()}>{draft ? '重新读取代码' : '保存当前代码'}</button>
     <button className="secondary" disabled={busy || loading} onClick={() => { setEditing(null); setDeleting(null); setError(''); setMessage(''); setRevision((value) => value + 1); }}>刷新解法</button>
+    <h3 className="section-title">解法 <span>{items.length}</span></h3>
     {editing && <p className="muted">刷新解法会放弃未保存的修改。</p>}
     {busy && <p role="status">正在处理…</p>}
     {error && <p role="alert">{error}</p>}

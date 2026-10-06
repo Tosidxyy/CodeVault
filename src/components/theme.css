@@ -1,5 +1,5 @@
 /* Shared by extension pages and injected into the content shadow root. */
-:root, :host { --cv-text:#272b33; --cv-muted:#68707d; --cv-line:#e5e7eb; --cv-accent:#4f46e5; --cv-soft:#f3f2ff; }
-.cv-brand { display:flex; align-items:center; gap:8px; font-weight:650; letter-spacing:-.4px; }
-.cv-mark { display:inline-grid; place-items:center; width:28px; height:28px; border-radius:8px; background:var(--cv-soft); color:var(--cv-accent); font:600 12px/1 monospace; letter-spacing:-1px; }
+:root, :host { --cv-text:#292823; --cv-muted:#77746d; --cv-line:#eae7e0; --cv-accent:#b65d17; --cv-soft:#f8f7f4; --cv-tint:#fff1e4; --cv-surface:#fff; --cv-canvas:#efede8; --cv-success:#267553; --cv-font:"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; }
+.cv-brand { display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:-.4px; }
+.cv-mark { display:block; width:30px; height:30px; flex-shrink:0; border-radius:8px; object-fit:contain; }
 .cv-icon { width:18px; height:18px; flex-shrink:0; vertical-align:middle; }

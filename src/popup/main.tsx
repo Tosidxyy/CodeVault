@@ -13,7 +13,7 @@ function Popup() {
       .catch((reason: Error) => setError(reason.message)).finally(() => setReady(true));
   }, []);
   return <main className="popup-shell">
-    <header className="flex items-center justify-between"><h1 className="text-lg font-bold"><Brand /></h1><a className="text-sm text-neutral-600" href="options.html" target="_blank" aria-label="设置"><Icon name="settings" /></a></header>
+    <header className="popup-header"><h2><Brand /></h2><a href="options.html" target="_blank" aria-label="设置"><Icon name="settings" /></a></header>
     {error && <p role="alert">{error}</p>}
     {ready ? <SavedProblems /> : <p role="status">正在读取收藏…</p>}
     <a className="mt-3 block text-center text-xs text-neutral-600 underline" href="https://leetcode.cn/problemset/" target="_blank" rel="noreferrer">打开 LeetCode</a>

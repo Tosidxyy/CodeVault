@@ -67,7 +67,7 @@ export function Note({ problem, onSaved }: { problem: Problem; onSaved: () => vo
     if (!event.dataTransfer.files.length) return;
     event.preventDefault(); event.stopPropagation(); void insert(Array.from(event.dataTransfer.files));
   }}>
-    <div className="note-heading"><strong>题目笔记</strong><span role="status">{!state.ready ? '正在读取…' : processing ? '正在处理图片…' : state.saving ? '正在保存…' : state.error ? '保存未完成' : state.dirty ? '待自动保存' : state.saved ? '已保存' : '开始记录思路'}</span></div>
+    <div className="note-heading"><strong>题目笔记</strong><span role="status" data-saved={state.saved && !state.dirty && !state.saving && !state.error}>{!state.ready ? '正在读取…' : processing ? '正在处理图片…' : state.saving ? '正在保存…' : state.error ? '保存未完成' : state.dirty ? '待自动保存' : state.saved ? '已保存' : '开始记录思路'}</span></div>
     <p className="muted">直接输入文字，粘贴、拖入或上传图片。停止输入后自动保存。</p>
     {(error || state.error) && <p role="alert">{error || state.error}</p>}
     {state.legacy && <p className="muted">旧笔记已转换，原文和附件备份保留在本机。</p>}
@@ -81,9 +81,9 @@ export function Note({ problem, onSaved }: { problem: Problem; onSaved: () => vo
             <button className="note-thumbnail" aria-label="放大笔记图片" onClick={() => setPreview(block.assetId)}><img src={state.images[block.assetId]} alt="笔记图片" /></button>
             <button className="image-delete" aria-label="删除图片" title="删除图片" disabled={processing} onClick={() => removeImage(block.id)}>×</button>
           </figure>)}
+          <button className="secondary note-upload" disabled={processing} onClick={() => input.current?.click()}>上传图片</button>
         </div>
       </div>
-      <div className="form-actions"><button className="secondary" disabled={processing} onClick={() => input.current?.click()}>上传图片</button></div>
       <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" aria-label="选择笔记图片" hidden onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ''; if (files.length) void insert(files); }} />
       <p className="muted">{noteText(state.blocks).length}/20000 字符 · 图片单张2MB，最多5张、合计6MB</p>
       {undo && <p role="status">图片已删除 · <button className="secondary" onClick={() => {

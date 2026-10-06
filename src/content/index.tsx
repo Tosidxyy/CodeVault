@@ -57,7 +57,7 @@ function App() {
     {open && <section id="codevault-panel" className="panel" aria-label="CodeVault 面板">
       <header className="panel-header">{view === 'detail' && <button className="nav-button back" aria-label="← 返回题库" title="返回题库" onClick={() => { setIntent(undefined); change({ view: 'home' }); }}><Icon name="back" /></button>}<h2><Brand /></h2><div className="header-actions"><button className="nav-button" aria-label="设置" onClick={() => void navigationRequest('settings').catch((reason: Error) => setError(reason.message))}><Icon name="settings" /></button><button className="close" aria-label="关闭面板" onClick={close}><Icon name="close" /></button></div></header>
       {error && <p role="alert">{error}</p>}
-      <div hidden={view !== 'home'}><button className="nav-button current-problem" onClick={() => change({ view: 'detail' })}>查看当前题目 →</button><SavedProblems /></div>
+      <div hidden={view !== 'home'}><SavedProblems currentProblem={current.state.status === 'ready' ? current.state.problem : undefined} onOpenCurrent={() => change({ view: 'detail' })} /></div>
       {view === 'detail' && <><ProblemCard current={current} intent={intent} onIntentHandled={() => setIntent(undefined)} /></>}
       <footer>题目、解法与笔记保存在本机<br />AI 仅在主动测试或分析时调用</footer>
     </section>}

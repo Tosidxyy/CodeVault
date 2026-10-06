@@ -88,9 +88,10 @@ export function AiAnalysis({ problem }: { problem: Problem }) {
       connection.postMessage({ problem, code: snapshot.code, language: snapshot.language, revision: config.revision, solutionId: target?.id, solutionRevision: target?.revision ?? 0 });
     } catch { lock.current = false; setBusy(false); setError('无法连接 AI 服务，请刷新页面重试。'); }
   }
-  return <section className="card solutions" aria-label="AI 代码分析">
-    <strong>AI 代码分析</strong>
+  return <section className="card solutions ai-analysis" aria-label="AI 代码分析">
+    <strong>AI 解法分析</strong>
     <button className="secondary" onClick={() => void aiRequest('options').catch((e: Error) => setError(e.message))}>打开 AI 设置</button>
+    <p className="muted">选择解法，生成一份易复习的分析。主动发送代码至所选服务商，可能计费。</p>
     <label>分析对象<select aria-label="分析对象" disabled={busy} value={selected} onChange={(e) => { sequence.current++; setSelected(e.target.value); setSnapshot(null); setTarget(null); setResult(''); setComplete(false); setError(''); setMessage(''); setConfirmSave(false); }}>
       <option value="editor">当前编辑器（临时分析）</option>
       {items.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.language}</option>)}

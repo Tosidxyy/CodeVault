@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { Problem } from '../platforms/types';
 import { problemStorage } from '../database/client';
 import type { LibraryProblem } from '../database/types';
 import { navigationRequest, persistNavigation, useNavigation } from '../navigation/store';
 const labels = { Easy: '简单', Medium: '中等', Hard: '困难' };
-export function SavedProblems() {
+export function SavedProblems({ currentProblem, onOpenCurrent }: { currentProblem?: Problem; onOpenCurrent?: () => void }) {
   const view = useNavigation((state) => state.view);
   const query = useNavigation((state) => state.query);
   const [items, setItems] = useState<LibraryProblem[]>([]);
@@ -36,22 +37,22 @@ export function SavedProblems() {
     finally { setNavigating(false); }
   };
   return <section className="library" aria-label="我的收藏" aria-busy={loading || navigating}>
-    <input type="search" aria-label="搜索收藏题目" placeholder="搜索题目、标签、解法名称" value={query} maxLength={500} onChange={(event) => { useNavigation.setState({ query: event.target.value, scroll: 0 }); if (list.current) list.current.scrollTop = 0; void persistNavigation().catch(() => {}); }} />
-    <div className="library-heading"><h2>我的收藏（{items.length}）</h2><button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>刷新收藏</button></div>
+    <h1 className="library-title">我的算法库</h1>
+    <p className="library-intro">把每次练习，变成可以复习的积累。</p>
+    <label className="library-search">搜索题库<input type="search" aria-label="搜索收藏题目" placeholder="搜索题目、标签、解法名称" value={query} maxLength={500} onChange={(event) => { useNavigation.setState({ query: event.target.value, scroll: 0 }); if (list.current) list.current.scrollTop = 0; void persistNavigation().catch(() => {}); }} /></label>
+    {onOpenCurrent && <div className="current-problem-card"><span>正在浏览</span><div>{currentProblem && <strong>{currentProblem.title}</strong>}<button onClick={onOpenCurrent}>查看当前题目 →</button></div></div>}
     {error && <p role="alert">{error}</p>}
     {loading && !items.length && <p role="status">正在读取收藏…</p>}
     <div className="library-scroll" ref={list} onScroll={(event) => { if (view === 'home' && event.currentTarget.getClientRects().length) { useNavigation.setState({ scroll: event.currentTarget.scrollTop }); void persistNavigation().catch(() => {}); } }}>
       <h3>最近访问</h3>
       {recent.length ? <div className="recent-list">{recent.map((item) => <button disabled={navigating} key={item.id} onClick={() => void select(item)}>{item.title}</button>)}</div> : <p className="muted">打开收藏题目后，会显示在这里。</p>}
-      <h3>全部收藏</h3>
+      <div className="library-heading"><h2 aria-label={`我的收藏（${items.length}）`}>全部收藏 {items.length}</h2><button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>刷新收藏</button></div>
       {!loading && !items.length && <p className="muted">还没有收藏。在题目面板点击“收藏题目”，即可保存到本机。</p>}
       {!!items.length && !filtered.length && <p className="muted">没有匹配的收藏题目。</p>}
       <ul>{filtered.map((item) => <li key={item.id}>
         <a aria-disabled={navigating} href={item.url} onClick={(event) => { event.preventDefault(); if (!navigating) void select(item); }}>{item.title}</a>
-        <span className={`difficulty ${item.difficulty.toLowerCase()}`}>{labels[item.difficulty]}</span>
+        <p className="library-tags">{item.tags.join(' · ') || '暂无标签'} <span className={`difficulty ${item.difficulty.toLowerCase()}`}>/ {labels[item.difficulty]}</span></p>
         <p>{item.solutionCount} 个解法 · {item.hasNote ? '有笔记' : '暂无笔记'}</p>
-        <p>{item.tags.join(' / ') || '暂无标签'}</p>
-        {item.lastOpenedAt && <p>最近访问 {new Date(item.lastOpenedAt).toLocaleString('zh-CN')}</p>}
       </li>)}</ul>
     </div>
   </section>;
