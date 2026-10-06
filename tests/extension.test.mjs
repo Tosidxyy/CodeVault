@@ -69,7 +69,7 @@ test('extension loads; popup renders; panel opens without changing host styles',
     const panelBox = await page.getByRole('region', { name: 'CodeVault 面板' }).boundingBox();
     assert.ok(panelBox.x >= 0 && panelBox.x + panelBox.width <= 320);
     await popup.goto(`chrome-extension://${extensionId}/options.html`);
-    await popup.getByText('CodeVault v0.2.0', { exact: false }).waitFor();
+    await popup.getByText('CodeVault v0.3.0', { exact: false }).waitFor();
     await page.route('https://leetcode.com/**', (route) => route.fulfill({ contentType: 'text/html', body: '<h1>International site fixture</h1>' }));
     await page.goto('https://leetcode.com/problems/two-sum/');
     await page.locator('.launcher').waitFor();

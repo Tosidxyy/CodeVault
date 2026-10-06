@@ -5,7 +5,7 @@
 
 CodeVault is a local-first browser extension for your LeetCode algorithm library. It supports leetcode.com and leetcode.cn in Chrome and Edge.
 
-The published baseline is v0.2.0. The main branch contains subsequent v0.2 development features; availability in the Chrome Web Store depends on the installed release.
+Current version: **v0.3.0**. This release adds backup/restore, a recycle bin, filters, sorting, a draggable panel and English/Chinese interfaces. Chrome Web Store availability depends on the installed release.
 
 ## Features
 
@@ -14,7 +14,7 @@ The published baseline is v0.2.0. The main branch contains subsequent v0.2 devel
 - Load a matching solution into the editor, confirm replacement and undo with Ctrl+Z.
 - Keep one illustrated note per problem, with automatic saving, image thumbnails and centered previews.
 - Optionally analyze selected code using your own DeepSeek, OpenAI, Claude or compatible API.
-- Development builds include JSON backup/restore, a problem recycle bin, difficulty/tag filters, sorting and a draggable panel with remembered layout.
+- Includes JSON backup/restore, a problem recycle bin, difficulty/tag filters, sorting and a draggable panel with remembered layout.
 
 ## Install from source
 
@@ -39,7 +39,7 @@ Open `chrome://extensions` or `edge://extensions`, enable Developer mode, choose
 
 The interface supports English and Simplified Chinese. Non-Chinese browser preferences default to English. Use **English / 中文** in the popup, settings or panel to switch; the choice persists locally and updates open extension views. Your problem titles, tags, code, solution names, notes and existing analyses are not translated. New analyses request the selected interface language.
 
-## Development-build tools
+## Library tools
 
 **Backups:** Export a local JSON file from Data backup. Keys and AI settings are excluded. Preview an import before confirming. Existing records are preserved; missing records are added. Backups include trash, are unencrypted and have a 64MB limit. Keep them private.
 
@@ -51,7 +51,7 @@ The interface supports English and Simplified Chinese. Non-Chinese browser prefe
 
 ## Data and limits
 
-Library data is stored locally in the browser profile. Uninstalling or clearing extension storage removes it; export a backup first in versions supporting backups. There is no CodeVault cloud synchronization.
+Library data is stored locally in the browser profile. Uninstalling or clearing extension storage removes it; export a backup first. There is no CodeVault cloud synchronization.
 
 API keys are stored locally without additional at-rest encryption. User-triggered AI analysis sends problem details, code and language directly to the selected provider, without notes or images. Connection tests and analysis may incur provider charges. CodeVault does not execute code, submit solutions or verify correctness. See the [privacy policy](docs/PRIVACY.md).
 

@@ -102,8 +102,13 @@ test('published v0.2.0 upgrades in place with identical ID, preserved data/confi
     assert.deepEqual(newManifest.permissions, oldManifest.permissions);
     assert.deepEqual(newManifest.host_permissions, oldManifest.host_permissions);
     assert.deepEqual(newManifest.optional_host_permissions, oldManifest.optional_host_permissions);
-    const numbers = oldManifest.version.split('.').map(Number); numbers[numbers.length - 1]++;
-    newManifest.version = numbers.join('.'); // temporary test fixture only; production version is untouched
+    const oldNumbers = oldManifest.version.split('.').map(Number);
+    const currentNumbers = newManifest.version.split('.').map(Number);
+    const firstDifference = currentNumbers.findIndex((value, index) => value !== (oldNumbers[index] ?? 0));
+    if (firstDifference < 0 || currentNumbers[firstDifference] < (oldNumbers[firstDifference] ?? 0)) {
+      oldNumbers[oldNumbers.length - 1]++;
+      newManifest.version = oldNumbers.join('.'); // fallback for a build not newer than the baseline
+    }
     await writeFile(resolve(extension, 'manifest.json'), JSON.stringify(newManifest));
     await appendFile(resolve(extension, newManifest.background.service_worker), probe);
     const restartedWorker = context.waitForEvent('serviceworker', { predicate: candidate => candidate !== worker && new URL(candidate.url()).host === extensionId });
@@ -131,7 +136,7 @@ test('published v0.2.0 upgrades in place with identical ID, preserved data/confi
     const popup = await context.newPage(); await popup.goto(`chrome-extension://${extensionId}/popup.html`);
     await popup.getByRole('link', { name: problem.title, exact: true }).waitFor(); await popup.getByRole('link', { name: second.title, exact: true }).waitFor();
     assert.deepEqual(await snapshot(worker), before);
-    await writeFile(resolve(resultRoot, 'upgrade-preservation.json'), JSON.stringify({ baselineVersion: oldManifest.version, temporaryVersion: newManifest.version, baselineSHA256: baselineHash,
+    await writeFile(resolve(resultRoot, 'upgrade-preservation.json'), JSON.stringify({ baselineVersion: oldManifest.version, targetVersion: newManifest.version, baselineSHA256: baselineHash,
       extensionId, browser: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', updateEvent: event, sameProfile: true, identicalDataAfterUpdate: true, identicalDataAfterOfflineRestart: true,
       counts: { problems: 2, solutions: 2, notes: 1 }, preserved: ['metadata/timestamps', 'exact code/language/source/remarks', 'analysis', 'note blocks/images/legacy', 'AI endpoint/model/key/revision'],
       scope: 'Local unpacked extension update; not a signed Chrome Web Store distribution test. No real AI requests.' }, null, 2));

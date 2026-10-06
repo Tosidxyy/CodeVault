@@ -11,7 +11,7 @@ export const english: Record<string, string> = {
   '展开浮窗':'Expand panel','切换紧凑浮窗':'Use compact panel','展开模式':'Expanded mode','紧凑模式':'Compact mode','恢复默认位置和大小':'Reset position and size','浮窗移动区域':'Panel movement area',
   '拖动标题栏移动；聚焦后方向键移动，Shift加速':'Drag the header to move; focus it and use arrow keys. Hold Shift for larger steps.','点击打开；拖动图标移动位置':'Click to open; drag the icon to move',
   '题目、解法与笔记保存在本机':'Problems, solutions and notes stay on this device','AI 仅在主动测试或分析时调用':'AI is called only when you test or request analysis',
-  'CodeVault v0.2.0 · 收藏、解法与笔记保存在本机':'CodeVault v0.2.0 · Bookmarks, solutions and notes are stored locally',
+  'CodeVault v0.3.0 · 收藏、解法与笔记保存在本机':'CodeVault v0.3.0 · Bookmarks, solutions and notes are stored locally',
   '回收站':'Trash','回收站（${0}）':'Trash (${0})','返回收藏':'Back to bookmarks','找回移出的题目，保留你的积累。':'Recover removed problems and keep your work.',
   '不会自动清空。恢复保留所有关联内容。':'Trash is not emptied automatically. Restoring keeps all related content.','回收站是空的。':'Trash is empty.','没有匹配的回收站题目。':'No matching problems in trash.','刷新回收站':'Refresh trash',
   '移入回收站':'Move to trash','移入回收站：${0}':'Move to trash: ${0}','移入回收站？':'Move to trash?','移入回收站确认':'Confirm move to trash','确认移入回收站':'Confirm move to trash',
