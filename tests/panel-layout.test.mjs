@@ -56,6 +56,15 @@ test('panel drags, cancels, moves by keyboard, expands, remembers across restart
     const reset=await checkBounds();assert.ok(Math.abs(reset.x+reset.width-1264)<2);assert.ok(reset.height<=440);
     await page.getByRole('button',{name:'关闭面板'}).click();await page.getByRole('button',{name:'展开 CodeVault',exact:true}).click();await checkBounds();
     const invalid=await probe.evaluate(()=>chrome.runtime.sendMessage({channel:'codevault-panel-layout',action:'set',layout:{right:-1,bottom:16,expanded:false}}));assert.equal(invalid.ok,false);assert.deepEqual((await preferences()).data,defaultPanelLayout);
+    await page.getByRole('button',{name:'关闭面板'}).click();
+    const launcher=page.getByRole('button',{name:'展开 CodeVault',exact:true});const iconStart=await launcher.boundingBox();
+    await page.mouse.move(iconStart.x+20,iconStart.y+20);await page.mouse.down();await page.mouse.move(iconStart.x-160,iconStart.y-100,{steps:6});await page.mouse.up();
+    assert.equal(await panel().count(),0);const iconMoved=await launcher.boundingBox();assert.ok(iconStart.x-iconMoved.x>150);
+    await probe.waitForFunction(async()=>{const r=await chrome.runtime.sendMessage({channel:'codevault-panel-layout',action:'get'});return r.data.right>150;});
+    await page.reload();await launcher.waitFor();await page.waitForFunction(()=>!document.querySelector('#codevault-root').shadowRoot.querySelector('.launcher').disabled);
+    const iconRestored=await launcher.boundingBox();assert.ok(Math.abs(iconRestored.x-iconMoved.x)<2&&Math.abs(iconRestored.y-iconMoved.y)<2);
+    await launcher.click();await panel().waitFor();await page.getByRole('button',{name:'恢复默认位置和大小'}).click();
+    await page.getByRole('button',{name:'关闭面板'}).click();await launcher.focus();await page.keyboard.press('Enter');await panel().waitFor();
     assert.deepEqual(errors,[]);await page.screenshot({path:'test-results/panel-compact-layout.png'});
   } finally {await context?.close();assert.ok(profile.startsWith(root+sep));await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:250});}
 });

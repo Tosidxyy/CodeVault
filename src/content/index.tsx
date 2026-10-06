@@ -66,7 +66,7 @@ function App() {
       <button className="secondary layout-reset" disabled={!panelLayout.ready} onClick={panelLayout.reset}>恢复默认位置和大小</button>
     </section>}
     <HoverCapture hidden={open || !ready} onCapture={(next) => { setIntent(next); change({ open: true, view: 'detail' }); }} />
-    <button disabled={!ready} className="launcher" aria-label={open ? '收起 CodeVault' : '展开 CodeVault'} aria-expanded={open} aria-controls="codevault-panel" onClick={() => open ? close() : change({ open: true })}><img src={chrome.runtime.getURL('icons/icon-128.png')} alt="" /></button>
+    <button disabled={!ready || !panelLayout.ready} className="launcher" title="点击打开；拖动图标移动位置" {...panelLayout.launcherHandlers} aria-label={open ? '收起 CodeVault' : '展开 CodeVault'} aria-expanded={open} aria-controls="codevault-panel" onClick={event => { if (!panelLayout.consumeLauncherClick(event.detail === 0)) { if (open) close(); else change({ open: true }); } }}><img draggable={false} src={chrome.runtime.getURL('icons/icon-128.png')} alt="" /></button>
   </div>;
 }
 if (!document.getElementById('codevault-root')) {
