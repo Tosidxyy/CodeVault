@@ -67,7 +67,7 @@ function App() {
 }
 if (!document.getElementById('codevault-root')) {
   const host = document.createElement('div'); host.id = 'codevault-root';
-  host.style.cssText = 'all:initial;position:fixed;right:20px;bottom:20px;z-index:2147483647;color-scheme:light;';
+  host.style.cssText = 'all:initial;position:fixed;right:16px;bottom:16px;z-index:2147483647;color-scheme:light;';
   const shadow = host.attachShadow({ mode: 'open' });
   const style = document.createElement('style'); style.textContent = themeStyles + styles + libraryStyles;
   const container = document.createElement('div'); shadow.append(style, container); document.documentElement.append(host);

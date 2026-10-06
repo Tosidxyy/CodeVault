@@ -48,6 +48,12 @@ test('extension loads; popup renders; panel opens without changing host styles',
     assert.equal(await page.locator('#codevault-root').count(), 1);
     await launcher.click();
     await page.getByRole('region', { name: 'CodeVault 面板' }).waitFor();
+    const compactPanel = await page.getByRole('region', { name: 'CodeVault 面板' }).boundingBox();
+    const viewport = page.viewportSize();
+    assert.equal(compactPanel.width, 360);
+    assert.ok(compactPanel.height <= 440);
+    assert.ok(viewport.width - compactPanel.x - compactPanel.width <= 20);
+    assert.ok(viewport.height - compactPanel.y - compactPanel.height <= 88);
     assert.equal(await page.locator('#host-button').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(255, 0, 0)');
     assert.equal(await page.locator('.launcher').evaluate((element) => getComputedStyle(element).fontSize), '17px');
     await mkdir('test-results', { recursive: true });
