@@ -34,7 +34,7 @@ test('extension loads; popup renders; panel opens without changing host styles',
     await popup.goto(`chrome-extension://${extensionId}/popup.html`);
     await popup.getByRole('heading', { name: 'CodeVault' }).waitFor();
     assert.equal(await popup.getByRole('link', { name: '打开 LeetCode' }).getAttribute('href'), 'https://leetcode.cn/problemset/');
-    assert.equal(await popup.locator('main').evaluate((element) => getComputedStyle(element).width), '400px');
+    assert.equal(await popup.locator('main').evaluate((element) => getComputedStyle(element).width), '520px');
 
     const page = await context.newPage();
     page.on('pageerror', (error) => errors.push(error.message));
