@@ -9,12 +9,19 @@
 .library button { font:12px/1.55 var(--cv-font); cursor:pointer; background:var(--cv-surface); color:var(--cv-text); border:1px solid var(--cv-line); border-radius:8px; min-height:36px; padding:8px 12px; }
 .library-heading button { border:0; color:var(--cv-muted); font-size:11px; padding:4px 6px; }
 .library-scroll { max-height:min(480px,calc(100dvh - 440px)); min-height:100px; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; }
-.library ul { padding:0; margin:0; list-style:none; }
-.library li { padding:16px 0; border-radius:8px; }
-.library li a { color:var(--cv-text); text-decoration:none; font-size:13px; font-weight:600; display:block; overflow-wrap:anywhere; }
-.library li:hover { background:var(--cv-soft); }
-.library a:hover { color:var(--cv-accent); }
-.library .difficulty { float:none; padding:0; font-size:11px; background:none; color:var(--cv-muted); }
+.library ul { display:grid; gap:10px; padding:0 2px 2px; margin:12px 0 0; list-style:none; }
+.library li { padding:0; min-width:0; }
+.library .problem-item { display:block; padding:14px 16px; border:1px solid var(--cv-line); border-radius:12px; background:var(--cv-surface); color:var(--cv-text); text-decoration:none; overflow-wrap:anywhere; transition:background .15s,border-color .15s; }
+.library .problem-item:hover, .library .problem-item:focus-visible { background:#fffaf5; border-color:#e4c5a8; }
+.problem-item-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.problem-item-title { min-width:0; font-size:14px; line-height:1.6; font-weight:600; }
+.library .difficulty { flex-shrink:0; padding:3px 7px; border-radius:6px; font-size:10px; font-weight:500; line-height:1.5; background:var(--cv-soft); color:var(--cv-muted); }
+.library .difficulty.easy { color:#267553; background:#eff7f1; }
+.library .difficulty.medium { color:#94651f; background:#fff5df; }
+.library .difficulty.hard { color:#a7382f; background:#fff0ed; }
+.problem-item-footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; font-size:11px; color:var(--cv-muted); }
+.problem-item-footer .has-note { color:var(--cv-success); }
+.problem-item-arrow { margin-left:auto; color:var(--cv-accent); }
 .library p { margin:8px 0 0; font-size:11px; color:var(--cv-muted); overflow-wrap:anywhere; }
 .library [role=alert] { color:#a7382f; }
 .recent-list { display:flex; flex-wrap:wrap; gap:8px; }

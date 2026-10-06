@@ -50,9 +50,11 @@ export function SavedProblems({ currentProblem, onOpenCurrent }: { currentProble
       {!loading && !items.length && <p className="muted">还没有收藏。在题目面板点击“收藏题目”，即可保存到本机。</p>}
       {!!items.length && !filtered.length && <p className="muted">没有匹配的收藏题目。</p>}
       <ul>{filtered.map((item) => <li key={item.id}>
-        <a aria-disabled={navigating} href={item.url} onClick={(event) => { event.preventDefault(); if (!navigating) void select(item); }}>{item.title}</a>
-        <p className="library-tags">{item.tags.join(' · ') || '暂无标签'} <span className={`difficulty ${item.difficulty.toLowerCase()}`}>/ {labels[item.difficulty]}</span></p>
-        <p>{item.solutionCount} 个解法 · {item.hasNote ? '有笔记' : '暂无笔记'}</p>
+        <a className="problem-item" aria-label={item.title} aria-disabled={navigating} href={item.url} onClick={(event) => { event.preventDefault(); if (!navigating) void select(item); }}>
+          <div className="problem-item-heading"><span className="problem-item-title">{item.title}</span><span className={`difficulty ${item.difficulty.toLowerCase()}`}>{labels[item.difficulty]}</span></div>
+          <p className="library-tags">{item.tags.join(' · ') || '暂无标签'}</p>
+          <div className="problem-item-footer"><span>{item.solutionCount} 个解法</span><span className={item.hasNote ? 'has-note' : undefined}>{item.hasNote ? '有笔记' : '暂无笔记'}</span><span className="problem-item-arrow" aria-hidden="true">打开题目 ›</span></div>
+        </a>
       </li>)}</ul>
     </div>
   </section>;
