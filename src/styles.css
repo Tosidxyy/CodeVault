@@ -44,5 +44,14 @@
 .ai-settings [role=status] { margin-top:16px; border-radius:8px; padding:12px; background:#eff8f2; color:var(--cv-success); font-size:13px; }
 .ai-settings [role=alert] { color:#a7382f; margin-top:16px; font-size:13px; }
 .settings-footer { font-size:11px; color:var(--cv-muted); padding:0 24px 24px; line-height:1.6; }
+.data-settings { margin:0 24px 24px; padding-top:24px; border-top:1px solid var(--cv-line); }
+.data-settings h2 { font-size:18px; font-weight:700; }
+.data-settings p { font-size:12px; color:var(--cv-muted); line-height:1.7; margin:12px 0; overflow-wrap:anywhere; }
+.data-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.data-actions button { min-height:36px; padding:8px 12px; font:12px/1.55 var(--cv-font); background:white; border:1px solid var(--cv-line); border-radius:8px; cursor:pointer; }
+.data-actions button:hover:not(:disabled) { background:var(--cv-tint); color:var(--cv-accent); }
+.data-actions button:disabled { opacity:.5; cursor:default; }
+.import-preview { padding:16px; background:var(--cv-tint); border-radius:12px; margin-top:16px; font-size:13px; }
+.data-settings [role=alert] { color:#a7382f; }
 @media (max-width:560px) { .settings-shell { margin:16px; } }
 @media (max-width:380px) { .ai-settings,.settings-header { padding:16px; } .popup-shell { padding-left:16px; padding-right:16px; } }

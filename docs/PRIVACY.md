@@ -1,6 +1,6 @@
 # CodeVault 隐私政策 / Privacy Policy
 
-适用版本：0.2.0。生效日期：2026-09-28。开发者：Tosidxyy。
+适用版本：0.2.0及后续v0.2开发构建。更新日期：2026-10-06。开发者：Tosidxyy。
 
 CodeVault 是帮助用户整理 LeetCode 题目、代码解法、笔记及可选 AI 分析的浏览器扩展。基础功能无需注册 CodeVault 账号；我们没有接收扩展用户数据的 CodeVault 后端服务，也没有在扩展中接入广告、行为分析或遥测 SDK。
 
@@ -35,7 +35,9 @@ CodeVault 对用户数据的使用遵守 Chrome Web Store User Data Policy，包
 
 已保存内容会保留在本机，直到用户修改、删除相关记录或清除扩展存储。可编辑笔记、删除单个解法、删除笔记图片，并在设置页清除 AI 配置；清除配置不会删除服务商账户或撤销其已收到的数据。旧版笔记迁移保留只读原文和附件备份，因此删除当前文字或图片不保证同时清除迁移备份。
 
-v0.2.0 尚不提供完整题库清空、单题删除或数据导出界面。若要彻底清除本机扩展数据，可卸载扩展或通过浏览器扩展开发工具清除该扩展来源的存储；这会丢失本地知识库，重新安装不能恢复。仅禁用扩展不等于删除数据。操作系统或浏览器外部备份不由 CodeVault 管理。
+v0.2.0 尚不提供完整题库清空、单题删除或数据导出界面。后续v0.2开发构建提供用户主动的本地JSON备份导出/合并导入：包含已保存的题目、解法、分析、笔记、图片及迁移备份，不包含AI配置或API Key，文件不经服务器传输。备份文件未加密，保存位置由用户选择，用户可通过文件管理器删除；导入只补齐缺失记录，保留已有内容。
+
+若要彻底清除本机扩展数据，可卸载扩展或通过浏览器扩展开发工具清除该扩展来源的存储；这会丢失本地知识库。支持备份的版本可用此前保存的文件恢复。仅禁用扩展不等于删除数据；卸载不会同时删除用户导出的备份文件。操作系统或浏览器外部备份不由 CodeVault 管理。
 
 ## 联系与政策更新
 
@@ -49,4 +51,4 @@ CodeVault stores your LeetCode bookmarks, solution snapshots, notes, images and 
 
 Optional AI settings, including your API key, are stored locally without additional at-rest encryption. A user-triggered connection test sends a short message and authentication to the selected HTTPS endpoint. A user-triggered analysis sends the selected code, language, problem title, URL and difficulty, along with model parameters, instructions and API authentication. Notes, images, the full library and LeetCode credentials are not attached. Requests go directly to the chosen provider, which may charge and retain data under its own policies. Cancellation cannot recall data already received.
 
-Data is used only for the stated user-facing features, consistent with the Chrome Web Store User Data Policy, including Limited Use requirements. The developer does not receive or sell extension data. You can clear AI settings, edit notes or delete solutions/images; migrated legacy note backups may remain until extension storage is cleared. Removing the extension or clearing its origin storage removes the local library. Disabling it does not delete data. Version 0.2.0 has no library export or full-library deletion UI. Contact: https://github.com/Tosidxyy/CodeVault/issues .
+Data is used only for the stated user-facing features, consistent with the Chrome Web Store User Data Policy, including Limited Use requirements. The developer does not receive or sell extension data. You can clear AI settings, edit notes or delete solutions/images; migrated legacy note backups may remain until extension storage is cleared. Removing the extension or clearing its origin storage removes the local library. Disabling it does not delete data. Version 0.2.0 has no export UI. Later v0.2 development builds support user-triggered local JSON export/import of saved library data, including legacy notes, excluding API keys and AI settings. Files are unencrypted and never uploaded by CodeVault; imports preserve existing records. Uninstalling does not remove exported files. Contact: https://github.com/Tosidxyy/CodeVault/issues .
