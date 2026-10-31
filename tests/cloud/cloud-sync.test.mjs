@@ -25,13 +25,13 @@ test('two isolated devices sign in, bind, sync images, resolve conflicts and rep
  const root=resolve('test-results');await mkdir(root,{recursive:true});const profiles=await mkdtemp(resolve(root,'cloud-sync-'));let a,b;
  t.after(async()=>{await a?.page.screenshot({path:'test-results/cloud-a-last.png'}).catch(()=>{});await b?.page.screenshot({path:'test-results/cloud-b-last.png'}).catch(()=>{});await a?.context.close();await b?.context.close();server.closeAllConnections();await new Promise(r=>server.close(r));globalThis.fetch=originalFetch;db.close();assert.ok(profiles.startsWith(root+sep));await rm(profiles,{recursive:true,force:true,maxRetries:5,retryDelay:300});});
  const launch=async(name)=>{
-  
+
   const context=await chromium.launchPersistentContext(resolve(profiles,name),{headless:true,channel:process.env.CODEVAULT_BROWSER_CHANNEL||'chromium',locale:'zh-CN',args:[`--disable-extensions-except=${resolve('dist')}`,`--load-extension=${resolve('dist')}`]});
-  
+
   const worker=context.serviceWorkers()[0]??await context.waitForEvent('serviceworker');const id=new URL(worker.url()).host;
   const page=await context.newPage();await page.goto(`chrome-extension://${id}/options.html`);await page.evaluate(()=>{chrome.permissions.request=async()=>true;});
   await worker.evaluate(bridge=>{chrome.permissions.contains=async()=>true;const realFetch=globalThis.fetch;globalThis.fetch=async(url,options)=>{const parsed=new URL(url);if(parsed.origin!=='https://sync.example')throw Error('Unexpected network request');const response=await realFetch(bridge+parsed.pathname+parsed.search,options);if(globalThis.dropNextCloudAck&&options?.method==='PUT'&&parsed.pathname==='/v1/sync/records'){globalThis.dropNextCloudAck=false;await response.body?.cancel();throw Error('fixture lost acknowledgement');}return response;};},bridge);
-  
+
   const call=async(action,fields={})=>{const r=await page.evaluate(data=>chrome.runtime.sendMessage({channel:'codevault-sync',...data}),{action,...fields});assert.equal(r.ok,true,r.error);return r.data;};
   const storage=async(action,fields={})=>{const r=await page.evaluate(data=>chrome.runtime.sendMessage({channel:'codevault',...data}),{action,...fields});assert.equal(r.ok,true,r.error);return r.data;};
   const sync=async()=>{const operation=await call('start');for(let tries=0;tries<500;tries++){const status=await call('status');if(!status.busy&&status.completedRun>=operation.runId)return status;await page.waitForTimeout(50);}throw Error('Sync operation timed out');};
