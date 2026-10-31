@@ -30,3 +30,8 @@ export function saveNoteSession(key: string, problem: Problem, blocks: NoteBlock
 export async function waitNoteSaves(problemId: string) {
   await Promise.allSettled([...sessions.values()].filter((session) => session.problemId === problemId).map((session) => session.tail));
 }
+
+// Cloud replacement fences old editors; a fresh read can resume the same session.
+export function invalidateNoteSessions(problemId: string) {
+  for (const session of sessions.values()) if (session.problemId === problemId) session.revision = undefined;
+}

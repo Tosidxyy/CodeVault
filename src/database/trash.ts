@@ -1,3 +1,4 @@
+import { rememberFence } from '../sync/local';
 import { openDatabase } from './problems';
 import { textBlock } from './noteBlocks';
 import type { StoredProblem } from './types';
@@ -6,7 +7,7 @@ export class TrashConflictError extends Error {}
 export async function changeTrash(id: string, action: 'trash' | 'restore' | 'purge', token?: string): Promise<StoredProblem | null> {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(['problems', 'solutions', 'notes'], 'readwrite');
+    const tx = db.transaction(['problems', 'solutions', 'notes', 'sync'], 'readwrite');
     const problems = tx.objectStore('problems');
     let result: StoredProblem | null = null, failure: Error | undefined;
     tx.oncomplete = () => resolve(result);
@@ -33,7 +34,7 @@ export async function changeTrash(id: string, action: 'trash' | 'restore' | 'pur
           try { notes.put({ problemId: id, blocks: [textBlock()], markdown: '', images: {}, revision, updatedAt: Date.now(), purged: true }); } catch { tx.abort(); }
         };
         const solutions = tx.objectStore('solutions'), cursor = solutions.index('problemId').openCursor(IDBKeyRange.only(id));
-        cursor.onsuccess = () => { try { const item = cursor.result; if (item) { item.delete(); item.continue(); } } catch { tx.abort(); } };
+        cursor.onsuccess = () => { try { const item = cursor.result; if (item) { rememberFence(tx,item.value.id,item.value.revision??0); item.delete(); item.continue(); } } catch { tx.abort(); } };
         problems.put({ id, deletedAt: row.deletedAt, trashToken: token, purged: true });
       } catch { tx.abort(); }
     };

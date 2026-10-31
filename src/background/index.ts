@@ -1,3 +1,4 @@
+import { scheduleSync } from '../sync/background';
 import { validateBlocks } from '../database/noteBlocks';
 import { imageIdPattern } from '../database/noteImages';
 import { saveNoteSession, waitNoteSaves } from '../database/noteSessions';
@@ -120,7 +121,7 @@ async function handle(message: Record<string, unknown>, sender: chrome.runtime.M
 // Register synchronously and keep the channel open until the IDB transaction completes.
 chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) => {
   if (!message || typeof message !== 'object' || (message as Record<string, unknown>).channel !== 'codevault') return false;
-  void handle(message as Record<string, unknown>, sender).then(sendResponse);
+  void handle(message as Record<string, unknown>, sender).then(result=>{if(result.ok&&/\.(save|saveBlocks|update|delete|trash|restore|purge)$/.test(String((message as Record<string,unknown>).action)))void scheduleSync().catch(()=>{});sendResponse(result);});
   return true;
 });
 

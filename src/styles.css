@@ -56,3 +56,5 @@
 .data-settings [role=alert] { color:#a7382f; }
 @media (max-width:560px) { .settings-shell { margin:16px; } }
 @media (max-width:380px) { .ai-settings,.settings-header { padding:16px; } .popup-shell { padding-left:16px; padding-right:16px; } }
+
+.cloud-login{display:grid;gap:12px}.cloud-login label{display:grid;gap:6px;font-size:13px}.cloud-login input{width:100%;min-width:0;padding:10px;border:1px solid var(--cv-line);border-radius:8px;background:white;font:inherit}.cloud-consent{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.7;margin:14px 0}.cloud-consent input{margin-top:4px;flex:none}.cloud-settings>button{margin:8px 8px 8px 0}.cloud-conflicts article{border:1px solid var(--cv-line);padding:14px;border-radius:10px;margin:12px 0}.cloud-conflicts pre{max-height:220px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}.cloud-conflicts summary{cursor:pointer;font-size:12px;margin:8px 0}

@@ -1,5 +1,13 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["src", "../src/sync"],
-  "compilerOptions": { "types": ["node"] }
+  "include": [
+    "src",
+    "../src/sync/protocol.ts",
+    "../src/sync/assets.ts"
+  ],
+  "compilerOptions": {
+    "types": [
+      "node"
+    ]
+  }
 }

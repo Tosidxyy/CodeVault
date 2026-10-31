@@ -18,6 +18,18 @@ export function canonical(value: unknown): string {
   if (value !== null && typeof value === 'object') return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonical((value as Record<string, unknown>)[key])).join(',') + '}';
   return JSON.stringify(value);
 }
+export function equivalent(a: SyncDocument|null|undefined,b: SyncDocument|null|undefined): boolean {
+  const content=(document:SyncDocument|null|undefined)=>{
+    if(!document)return document;
+    const copy=structuredClone(document);
+    for(const problem of copy.problems){delete problem.lastOpenedAt;delete (problem as Partial<typeof problem>).updatedAt;}
+    for(const solution of copy.solutions){delete solution.revision;delete solution.updatedAt;delete solution.analysisUpdatedAt;}
+    copy.notes=copy.notes.filter(note=>note.legacy || Object.keys(note.images??{}).length || note.blocks.some(block=>block.type==='image'||block.content!==''));
+    for(const note of copy.notes){delete (note as Partial<typeof note>).revision;delete (note as Partial<typeof note>).updatedAt;}
+    return copy;
+  };
+  return canonical(content(a))===canonical(content(b));
+}
 export function validateDocument(id: string, value: unknown): SyncDocument | null {
   if (!validProblemId(id)) throw new Error('Invalid sync problem ID');
   if (value === null) return null;
@@ -50,9 +62,9 @@ export function planSync(accountId: string, baseline: Baseline, localInput: Map<
     const here = local.get(id);
     if (here === undefined) { if (cloud) plan.downloads.push(cloud); continue; }
     if (!cloud) { plan.uploads.push({ id, baseRevision: 0, document: here }); continue; }
-    if (canonical(here) === canonical(cloud.document)) continue;
-    if (old && canonical(here) === canonical(old.document)) { plan.downloads.push(cloud); continue; }
-    if (old && canonical(cloud.document) === canonical(old.document)) { plan.uploads.push({ id, baseRevision: cloud.revision, document: here }); continue; }
+    if (equivalent(here,cloud.document)) continue;
+    if (old && equivalent(here,old.document)) { plan.downloads.push(cloud); continue; }
+    if (old && equivalent(cloud.document,old.document)) { plan.uploads.push({ id, baseRevision: cloud.revision, document: here }); continue; }
     // Includes edit/edit, delete/edit and first-login collisions. Keep both.
     plan.conflicts.push({ id, local: here, remote: cloud });
   }

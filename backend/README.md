@@ -2,7 +2,8 @@
 
 Independent Cloudflare Workers/D1 synchronization core. Do not bind this migration
 or Worker to Guidy's database. The extension remains v0.3.0 with local storage;
-the backend now provides email OTP/session APIs, but no extension login or synchronization interface is connected.
+the main branch now includes optional extension login, account consent, a durable
+outbox and conflict UI. No public service is deployed. See [extension integration](EXTENSION.md).
 
 ## Checks
 
@@ -48,8 +49,7 @@ enumerated as tombstones. Persist conflict copies before presenting resolution.
 - Production auth configuration, real OTP delivery and bounce/suppression handling.
 - Isolated Worker/D1 configuration and migrations, domain, email sender/secrets.
 - Real private R2 binding, Cron cleanup configuration and cloud lifecycle acceptance.
-- Extension account binding/consent, persistent outbox, atomic remote application
-  with local revision fencing, alarms/retries and conflict resolution UI.
+- Native permission-dialog, periodic alarm, cloud account-deletion UI and signed-distribution acceptance.
 - Local Worker runtime and full multi-device/offline/crash integration checks.
 - Privacy policy, retention/limits, production deployment and real email tests.
 

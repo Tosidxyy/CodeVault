@@ -6,7 +6,8 @@
   "default_locale": "en",
   "minimum_chrome_version": "120",
   "permissions": [
-    "storage"
+    "storage",
+    "alarms"
   ],
   "host_permissions": [
     "https://leetcode.cn/*",

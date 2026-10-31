@@ -49,7 +49,7 @@ test('v4 notes migrate without loss; autosave, failure recovery, conflicts, clos
     assert.equal(migrated.revision, 3); assert.equal(migrated.updatedAt, 123);
     assert.deepEqual(migrated.legacy, { markdown: legacy.markdown, images: legacy.images });
     assert.equal(migrated.blocks.filter((b) => b.type === 'image').length, 1);
-    assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === 'codevault').version), 5);
+    assert.equal(await worker.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === 'codevault').version), 6);
     const page = await context.newPage(); const errors = []; page.on('pageerror', (error) => errors.push(error.message));
     await page.route('https://leetcode.*/**', (route) => {
       if (new URL(route.request().url()).pathname === '/graphql/') { const slug = route.request().postDataJSON().variables.titleSlug; return route.fulfill({ json: { data: { question: { questionId: slug === 'two-sum' ? '1' : '2', titleSlug: slug, title: slug, difficulty: 'Easy', topicTags: [] } } } }); }

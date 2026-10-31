@@ -8,9 +8,10 @@ export class ProblemTrashedError extends Error { constructor() { super('题目�
 export function openDatabase(): Promise<IDBDatabase> {
   if (connection) return connection;
   connection = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open('codevault', 5);
+    const request = indexedDB.open('codevault', 6);
     let blocked = false;
     request.onupgradeneeded = (event) => {
+      if (event.oldVersion < 6) request.result.createObjectStore('sync', { keyPath: 'key' });
       if (event.oldVersion < 1) {
         const store = request.result.createObjectStore('problems', { keyPath: 'id' });
         store.createIndex('updatedAt', 'updatedAt');

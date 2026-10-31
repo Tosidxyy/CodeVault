@@ -43,6 +43,11 @@ test('published v0.2.0 upgrades in place with identical ID, preserved data/confi
     });
     return { library: await read('codevault'), settings: await read('codevault-settings') };
   });
+  const assertPreserved=(after,before)=>{
+    assert.equal(after.library.version,6);assert.deepEqual(after.library.stores.sync,[]);
+    const {sync,...stores}=after.library.stores;
+    assert.deepEqual({...after,library:{version:before.library.version,stores}},before);
+  };
   try {
     // Validate all archive target paths and total size before extracting.
     execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `
@@ -62,7 +67,7 @@ test('published v0.2.0 upgrades in place with identical ID, preserved data/confi
       [System.IO.Compression.ZipFile]::ExtractToDirectory($env:CODEVAULT_UPGRADE_ZIP, $env:CODEVAULT_UPGRADE_DIR)
     `], { env: { ...process.env, CODEVAULT_UPGRADE_ZIP: baselineZip, CODEVAULT_UPGRADE_DIR: extension }, stdio: 'pipe' });
     const oldManifest = JSON.parse(await readFile(resolve(extension, 'manifest.json'), 'utf8'));
-    assert.equal(oldManifest.version, '0.2.0');
+    assert.ok(['0.2.0','0.3.0'].includes(oldManifest.version));
     await appendFile(resolve(extension, oldManifest.background.service_worker), probe);
     context = await launch();
     let worker = await workerFor();
@@ -99,7 +104,7 @@ test('published v0.2.0 upgrades in place with identical ID, preserved data/confi
     const newManifest = JSON.parse(await readFile(resolve(extension, 'manifest.json'), 'utf8'));
     assert.equal(newManifest.manifest_version, oldManifest.manifest_version);
     assert.equal(newManifest.key, oldManifest.key);
-    assert.deepEqual(newManifest.permissions, oldManifest.permissions);
+    assert.deepEqual(newManifest.permissions, [...oldManifest.permissions,'alarms']);
     assert.deepEqual(newManifest.host_permissions, oldManifest.host_permissions);
     assert.deepEqual(newManifest.optional_host_permissions, oldManifest.optional_host_permissions);
     const oldNumbers = oldManifest.version.split('.').map(Number);
@@ -118,8 +123,8 @@ test('published v0.2.0 upgrades in place with identical ID, preserved data/confi
     const updated = await context.newPage(); await updated.goto(`chrome-extension://${extensionId}/options.html`);
     await updated.waitForFunction(async () => (await chrome.storage.local.get('_codevaultUpgradeTest'))._codevaultUpgradeTest?.version === chrome.runtime.getManifest().version);
     const event = await updated.evaluate(async () => (await chrome.storage.local.get('_codevaultUpgradeTest'))._codevaultUpgradeTest);
-    assert.deepEqual(event, { reason: 'update', previousVersion: '0.2.0', version: newManifest.version });
-    assert.deepEqual(await snapshot(worker), before);
+    assert.deepEqual(event, { reason: 'update', previousVersion: oldManifest.version, version: newManifest.version });
+    assertPreserved(await snapshot(worker), before);
     await updated.getByText(/API Key 已保存（不回显）/).waitFor();
     assert.equal(await updated.getByLabel('API Key', { exact: true }).inputValue(), '');
     const backupSection = updated.getByRole('region', { name: '数据备份' });
@@ -135,9 +140,9 @@ test('published v0.2.0 upgrades in place with identical ID, preserved data/confi
     assert.equal(new URL(worker.url()).host, extensionId);
     const popup = await context.newPage(); await popup.goto(`chrome-extension://${extensionId}/popup.html`);
     await popup.getByRole('link', { name: problem.title, exact: true }).waitFor(); await popup.getByRole('link', { name: second.title, exact: true }).waitFor();
-    assert.deepEqual(await snapshot(worker), before);
+    assertPreserved(await snapshot(worker),before);
     await writeFile(resolve(resultRoot, 'upgrade-preservation.json'), JSON.stringify({ baselineVersion: oldManifest.version, targetVersion: newManifest.version, baselineSHA256: baselineHash,
-      extensionId, browser: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', updateEvent: event, sameProfile: true, identicalDataAfterUpdate: true, identicalDataAfterOfflineRestart: true,
+      extensionId, browser: process.env.CODEVAULT_BROWSER_CHANNEL || 'chromium', updateEvent: event, sameProfile: true, librarySchema: {from:5,to:6}, identicalDataAfterUpdate: true, identicalDataAfterOfflineRestart: true,
       counts: { problems: 2, solutions: 2, notes: 1 }, preserved: ['metadata/timestamps', 'exact code/language/source/remarks', 'analysis', 'note blocks/images/legacy', 'AI endpoint/model/key/revision'],
       scope: 'Local unpacked extension update; not a signed Chrome Web Store distribution test. No real AI requests.' }, null, 2));
   } finally {

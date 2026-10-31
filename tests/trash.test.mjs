@@ -29,7 +29,7 @@ test('trash confirms, preserves data across restart, rejects stale restores/writ
   const getNote = async () => (await send({ action: 'notes.get', problemId: problem.id })).data;
   const getTrash = async () => (await send({ action: 'trash.list' })).data;
   const active = async () => (await send({ action: 'library.list' })).data;
-  const snapshot = () => worker.evaluate(() => new Promise(resolve => { const r=indexedDB.open('codevault',5);r.onsuccess=()=>{const db=r.result,tx=db.transaction(['problems','solutions','notes']);const q=['problems','solutions','notes'].map(n=>tx.objectStore(n).getAll());tx.oncomplete=()=>{db.close();resolve(q.map(x=>x.result));};};}));
+  const snapshot = () => worker.evaluate(() => new Promise(resolve => { const r=indexedDB.open('codevault',6);r.onsuccess=()=>{const db=r.result,tx=db.transaction(['problems','solutions','notes']);const q=['problems','solutions','notes'].map(n=>tx.objectStore(n).getAll());tx.oncomplete=()=>{db.close();resolve(q.map(x=>x.result));};};}));
   const refresh = async () => { await popup.reload(); await popup.getByRole('heading', { name: /^我的收藏/ }).waitFor(); };
   const move = async () => {
     await popup.getByRole('button', { name: `移入回收站：${problem.title}`, exact: true }).click();

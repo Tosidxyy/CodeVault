@@ -1,3 +1,4 @@
+import { rememberFence } from '../sync/local';
 import { openDatabase, ProblemTrashedError } from './problems';
 import type { Problem } from '../platforms/types';
 import type { SolutionDraft, SolutionMetadata, StoredSolution } from './types';
@@ -7,7 +8,7 @@ export class SolutionConflictError extends Error {}
 export async function changeSolution(problemId: string, id: string, revision: number, metadata?: SolutionMetadata, analysis?: string): Promise<StoredSolution | null> {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(['solutions', 'problems'], 'readwrite');
+    const tx = db.transaction(['solutions', 'problems', 'sync'], 'readwrite');
     const store = tx.objectStore('solutions');
     let result: StoredSolution | null = null;
     let conflict = false;
@@ -29,7 +30,7 @@ export async function changeSolution(problemId: string, id: string, revision: nu
         } else if (metadata) {
           result = { ...current, ...metadata, revision: revision + 1, updatedAt: Date.now() };
           store.put(result);
-        } else store.delete(id);
+        } else { rememberFence(tx,id,current.revision??0); store.delete(id); }
       } catch { tx.abort(); }
     };
   });
