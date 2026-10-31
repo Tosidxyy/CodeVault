@@ -18,3 +18,9 @@ releases/
 /docs/*
 !/docs/PRIVACY.md
 /scripts/webstore-assets.mjs
+
+# Cloud backend local credentials and runtime state
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
