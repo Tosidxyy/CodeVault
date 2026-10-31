@@ -1,8 +1,8 @@
-# CodeVault sync backend — foundation, not deployed
+# CodeVault sync backend — development, not deployed
 
 Independent Cloudflare Workers/D1 synchronization core. Do not bind this migration
 or Worker to Guidy's database. The extension remains v0.3.0 with local storage;
-there is currently no public login or extension synchronization interface.
+the backend now provides email OTP/session APIs, but no extension login or synchronization interface is connected.
 
 ## Checks
 
@@ -29,10 +29,11 @@ and keys are not included. Maximum request 768KiB and document 700KiB: larger
 attachments require the future R2 storage phase; no silent image truncation.
 
 Session ownership comes exclusively from a SHA-256 hashed, 256-bit opaque bearer
-session in `sync_sessions`, with expiry. No login/issuance route is provided yet;
-tests provision synthetic sessions only. Do not create user sessions manually for
-production. OTP delivery/limits, revocation and account deletion must be completed
-before public deployment. Only configured exact origins get CORS permission.
+session in `sync_sessions`, with expiry. Email OTP verification creates accounts
+and sessions atomically. Current/all-device logout and recently authenticated
+cloud account deletion are implemented. See [authentication configuration and API](AUTH.md).
+Only configured exact origins get CORS permission. Real delivery and deployment
+acceptance are still pending.
 
 Three-way merge is pure and account-scoped. A problem bundle is the initial
 conflict boundary: independent edits inside one problem may require a manual
@@ -43,7 +44,7 @@ enumerated as tombstones. Persist conflict copies before presenting resolution.
 
 ## Remaining before public use
 
-- Email OTP login, abuse limits, hashed sessions, logout and deletion lifecycle.
+- Production auth configuration, real OTP delivery and bounce/suppression handling.
 - Isolated Worker/D1 configuration and migrations, domain, email sender/secrets.
 - R2 images with ownership checks, retry and cleanup lifecycle.
 - Extension account binding/consent, persistent outbox, atomic remote application
@@ -52,5 +53,6 @@ enumerated as tombstones. Persist conflict copies before presenting resolution.
 - Privacy policy, retention/limits, production deployment and real email tests.
 
 SQLite tests verify SQL behavior through a D1-shaped adapter, not a deployed D1
-or Workers runtime. No real email, Guidy resources, credentials or user data are
-read or modified by these tests.
+or Workers runtime. No real emails are sent and no Guidy resources or user data are read or modified.
+Mail transport is mocked; cryptographic code generation, verification, session
+hashing, SQL ownership, atomic rollback and revocation paths run for real.

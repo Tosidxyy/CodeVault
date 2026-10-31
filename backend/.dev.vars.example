@@ -1,0 +1,6 @@
+# Example names only. Copy to ignored .dev.vars for a future isolated local Worker.
+# Public login remains disabled unless all four settings are configured.
+AUTH_ENABLED=false
+AUTH_SECRET=
+RESEND_API_KEY=
+EMAIL_FROM=

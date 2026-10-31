@@ -1,38 +1,22 @@
 import { canonical, validateDocument } from '../../src/sync/protocol.ts';
 import { validProblemId } from '../../src/database/validation.ts';
 
-// Structural subset of the Workers D1 API; keeps protocol tests dependency-free.
-interface Statement {
-  bind(...values: (string | number)[]): Statement;
-  first<T>(): Promise<T | null>;
-  all<T>(): Promise<{ results: T[] }>;
-  run(): Promise<{ meta: { changes: number } }>;
-}
-export interface Env { DB: { prepare(sql: string): Statement }; ALLOWED_ORIGINS: string }
+import { authRoute, getSession, cleanupAuth } from './auth.ts';
+import type { AuthEnv } from './auth.ts';
+import { json, readBody } from './http.ts';
+export { hashToken } from './auth.ts';
+export interface Env extends AuthEnv { ALLOWED_ORIGINS: string }
 interface Row { problem_id: string; revision: number; document: string; mutation_id: string }
 const maxRequestBytes = 768 * 1024;
 const maxDocumentBytes = 700 * 1024;
-const json = (value: unknown, status = 200) => Response.json(value, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 const record = (row: Row) => ({ id: row.problem_id, revision: row.revision, document: JSON.parse(row.document) });
-async function readBody(request: Request): Promise<unknown> {
-  if (!request.headers.get('content-type')?.startsWith('application/json')) throw new Error('Invalid body');
-  const reader = request.body?.getReader(); if (!reader) throw new Error('Missing body');
-  const chunks: Uint8Array[] = []; let size = 0;
-  try { for (;;) { const {value,done} = await reader.read(); if (done) break; size += value.byteLength; if (size > maxRequestBytes) throw new Error('Too large'); chunks.push(value); } }
-  finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
-  const bytes = new Uint8Array(size); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
-}
-export async function hashToken(token: string): Promise<string> {
-  return [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token)))].map(n => n.toString(16).padStart(2,'0')).join('');
-}
 async function route(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
-  if (url.pathname === '/health' && request.method === 'GET') return json({ ok: true, service: 'codevault-sync', stage: 'foundation' });
+  if (url.pathname === '/health' && request.method === 'GET') return json({ ok: true, service: 'codevault-sync', stage: 'auth-backend' });
   if (!env.DB) return json({ error: 'Service not configured' }, 503);
-  const token = request.headers.get('Authorization')?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
-  if (!token) return json({ error: 'Authentication required' }, 401);
-  const session = await env.DB.prepare('SELECT user_id FROM sync_sessions WHERE token_hash = ? AND expires_at > ?').bind(await hashToken(token), Date.now()).first<{user_id: string}>();
+  const authResponse = await authRoute(request, env);
+  if (authResponse) return authResponse;
+  const session = await getSession(request, env);
   if (!session) return json({ error: 'Authentication required' }, 401);
   // Owner is always taken from a verified server session, never request fields.
   const owner = session.user_id;
@@ -47,7 +31,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   if (url.pathname === '/v1/sync/records' && request.method === 'PUT') {
     let input: Record<string, unknown>, document: string;
     try {
-      const body = await readBody(request);
+      const body = await readBody(request, maxRequestBytes);
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error();
       input = body as Record<string, unknown>;
       if (Object.keys(input).some(k => !['id','baseRevision','mutationId','document'].includes(k)) || !validProblemId(input.id) ||
@@ -59,8 +43,8 @@ async function route(request: Request, env: Env): Promise<Response> {
     const { id, baseRevision, mutationId } = input as { id: string; baseRevision: number; mutationId: string };
     // One atomic conditional SQL statement: stale reads cannot overwrite a write.
     const changed = baseRevision === 0
-      ? (await env.DB.prepare('INSERT INTO sync_documents(user_id,problem_id,revision,document,mutation_id,updated_at) VALUES(?,?,1,?,?,?) ON CONFLICT(user_id,problem_id) DO NOTHING').bind(owner,id,document,mutationId,Date.now()).run()).meta.changes
-      : (await env.DB.prepare('UPDATE sync_documents SET revision=revision+1,document=?,mutation_id=?,updated_at=? WHERE user_id=? AND problem_id=? AND revision=? AND mutation_id != ?').bind(document,mutationId,Date.now(),owner,id,baseRevision,mutationId).run()).meta.changes;
+      ? (await env.DB.prepare('INSERT INTO sync_documents(user_id,problem_id,revision,document,mutation_id,updated_at) SELECT ?,?,1,?,?,? WHERE EXISTS(SELECT 1 FROM sync_sessions s JOIN auth_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.user_id=? AND s.expires_at>? AND u.deletion_nonce IS NULL) ON CONFLICT(user_id,problem_id) DO NOTHING').bind(owner,id,document,mutationId,Date.now(),session.tokenHash,owner,Date.now()).run()).meta.changes
+      : (await env.DB.prepare('UPDATE sync_documents SET revision=revision+1,document=?,mutation_id=?,updated_at=? WHERE user_id=? AND problem_id=? AND revision=? AND mutation_id != ? AND EXISTS(SELECT 1 FROM sync_sessions s JOIN auth_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.user_id=? AND s.expires_at>? AND u.deletion_nonce IS NULL)').bind(document,mutationId,Date.now(),owner,id,baseRevision,mutationId,session.tokenHash,owner,Date.now()).run()).meta.changes;
     const current = await env.DB.prepare('SELECT problem_id,revision,document,mutation_id FROM sync_documents WHERE user_id=? AND problem_id=?').bind(owner,id).first<Row>();
     if (!current) return json({ error: 'Conflict', current: null }, 409);
     if (!changed && !(current.mutation_id === mutationId && current.document === document && current.revision === baseRevision + 1)) return json({ error: 'Conflict', current: record(current) }, 409);
@@ -71,6 +55,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   return json({ error: 'Not found' }, 404);
 }
 export default {
+  async scheduled(_controller: unknown, env: Env): Promise<void> { await cleanupAuth(env); },
   async fetch(request: Request, env: Env): Promise<Response> {
     const origin = request.headers.get('Origin');
     const allowed = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -79,7 +64,7 @@ export default {
     try { response = request.method === 'OPTIONS' ? new Response(null, { status: 204 }) : await route(request, env); }
     catch { response = json({ error: 'Service temporarily unavailable' }, 503); }
     if (origin) { response.headers.set('Access-Control-Allow-Origin', origin); response.headers.set('Vary', 'Origin'); }
-    response.headers.set('Access-Control-Allow-Methods', 'GET,PUT,OPTIONS');
+    response.headers.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     response.headers.set('Access-Control-Allow-Headers', 'Authorization,Content-Type');
     return response;
   },

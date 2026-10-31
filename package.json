@@ -15,7 +15,7 @@
     "test:upgrade": "npm run build && node --test --test-concurrency=1 tests/upgrade/*.test.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck:backend": "tsc --noEmit -p backend/tsconfig.json",
-    "test:sync": "node --experimental-strip-types --test backend/tests/sync.test.mjs"
+    "test:sync": "node --experimental-strip-types --test backend/tests/*.test.mjs"
   },
   "dependencies": {
     "mdast-util-from-markdown": "2.0.3",

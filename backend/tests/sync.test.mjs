@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { readFile } from 'node:fs/promises';
-import { DatabaseSync } from 'node:sqlite';
+import { database } from './helpers.mjs';
 import worker, { hashToken } from '../src/worker.ts';
 import { canonical, validateDocument, planSync } from '../../src/sync/protocol.ts';
 
@@ -43,10 +42,10 @@ test('sync validation retains original code/images and strips settings, keys and
 });
 
 test('sync Worker uses session owners, atomic CAS, exact retries, persistent tombstones and bounded requests',async()=>{
- const db=new DatabaseSync(':memory:');db.exec(await readFile(new URL('../migrations/0001_sync.sql',import.meta.url),'utf8'));
- const adapter={prepare(sql){let args=[];const statement={bind(...values){args=values;return statement;},async first(){return db.prepare(sql).get(...args)??null;},async all(){return {results:db.prepare(sql).all(...args)};},async run(){return {meta:{changes:Number(db.prepare(sql).run(...args).changes)}};}};return statement;}};
+ const {db,adapter}=await database();
  const alice='a'.repeat(64),bob='b'.repeat(64),expired='c'.repeat(64);
- for(const [token,user,expires] of [[alice,'alice',Date.now()+60000],[bob,'bob',Date.now()+60000],[expired,'alice',0]])db.prepare('INSERT INTO sync_sessions VALUES(?,?,?)').run(await hashToken(token),user,expires);
+ for(const user of ['alice','bob'])db.prepare('INSERT INTO auth_users(id,email,created_at) VALUES(?,?,?)').run(user,user+'@example.test',Date.now());
+ for(const [token,user,expires] of [[alice,'alice',Date.now()+60000],[bob,'bob',Date.now()+60000],[expired,'alice',0]])db.prepare('INSERT INTO sync_sessions(token_hash,user_id,expires_at) VALUES(?,?,?)').run(await hashToken(token),user,expires);
  const env={DB:adapter,ALLOWED_ORIGINS:'chrome-extension://approved'};
  const request=(method='GET',body,token=alice,path='/v1/sync/records',extra={})=>worker.fetch(new Request('https://sync.example'+path,{method,headers:{Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{}),...extra},...(body?{body:JSON.stringify(body)}:{})}),env);
  const write=(baseRevision,doc,mutationId=crypto.randomUUID())=>({id,baseRevision,document:doc,mutationId});
