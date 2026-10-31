@@ -1,9 +1,9 @@
-# CodeVault sync backend — development, not deployed
+# CodeVault sync backend — closed pilot
 
 Independent Cloudflare Workers/D1 synchronization core. Do not bind this migration
 or Worker to Guidy's database. The extension remains v0.3.0 with local storage;
 the main branch now includes optional extension login, account consent, a durable
-outbox and conflict UI. No public service is deployed. See [extension integration](EXTENSION.md).
+outbox and conflict UI. The default endpoint is deployed as an email-allowlisted closed pilot, not public registration. See [extension integration](EXTENSION.md) and [deployment](DEPLOYMENT.md).
 
 ## Checks
 
@@ -34,8 +34,7 @@ Session ownership comes exclusively from a SHA-256 hashed, 256-bit opaque bearer
 session in `sync_sessions`, with expiry. Email OTP verification creates accounts
 and sessions atomically. Current/all-device logout and recently authenticated
 cloud account deletion are implemented. See [authentication configuration and API](AUTH.md).
-Only configured exact origins get CORS permission. Real delivery and deployment
-acceptance are still pending.
+Only configured exact origins get CORS permission. Real inbox login and private D1/R2 image round trips passed in the closed pilot.
 
 Three-way merge is pure and account-scoped. A problem bundle is the initial
 conflict boundary: independent edits inside one problem may require a manual
@@ -44,16 +43,15 @@ conflicts. Missing pages, missing local records and cloud revision regression
 are errors, not deletion instructions. Local permanent deletes must be explicitly
 enumerated as tombstones. Persist conflict copies before presenting resolution.
 
-## Remaining before public use
+## Verification and remaining rollout work
 
-- Production auth configuration, real OTP delivery and bounce/suppression handling.
-- Isolated Worker/D1 configuration and migrations, domain, email sender/secrets.
-- Real private R2 binding, Cron cleanup configuration and cloud lifecycle acceptance.
-- Native permission-dialog, periodic alarm, cloud account-deletion UI and signed-distribution acceptance.
-- Local Worker runtime and full multi-device/offline/crash integration checks.
-- Privacy policy, retention/limits, production deployment and real email tests.
+Contract tests use actual SQLite with mocked outbound mail/R2. The separate
+`npm --prefix backend run test:runtime` exercises real local Workers runtime,
+D1 transactions, outbound mail transport, R2 and scheduled cleanup. Closed-pilot
+acceptance verified real inbox login, HTTPS D1/R2 writes, PNG integrity, idempotent
+replay and stale-write rejection using only a disposable QA fixture.
 
-SQLite tests verify SQL behavior through a D1-shaped adapter, not a deployed D1
-or Workers runtime. No real emails are sent and no Guidy resources or user data are read or modified.
-Mail transport is mocked; cryptographic code generation, verification, session
-hashing, SQL ownership, atomic rollback and revocation paths run for real.
+Public rollout still requires native extension permission dialogs, actual alarm
+and production cleanup progress, signed-distribution/multi-device HTTPS tests,
+provider bounce/suppression handling, operating limits and release preparation.
+Guidy's application, database, storage and credentials are not shared or modified.

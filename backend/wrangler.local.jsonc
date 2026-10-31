@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "codevault-local",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-30",
+  "workers_dev": false,
+  "vars": { "AUTH_ENABLED": "false", "ALLOWED_ORIGINS": "" },
+  "d1_databases": [{ "binding": "DB", "database_name": "codevault-local", "database_id": "00000000-0000-0000-0000-000000000001", "migrations_dir": "migrations" }],
+  "r2_buckets": [{ "binding": "ASSETS", "bucket_name": "codevault-local-assets" }],
+  "observability": { "enabled": false }
+}

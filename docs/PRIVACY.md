@@ -1,8 +1,8 @@
 # CodeVault 隐私政策 / Privacy Policy
 
-适用版本：已发布v0.3.0及main分支v0.4开发预览（另注明旧版差异）。更新日期：2026-10-30。开发者：Tosidxyy。
+适用版本：已发布v0.3.0及main分支v0.4开发预览（另注明旧版差异）。更新日期：2026-10-31。开发者：Tosidxyy。
 
-CodeVault 是帮助用户整理 LeetCode 题目、代码解法、笔记及可选 AI 分析的浏览器扩展。基础功能无需注册 CodeVault 账号；目前没有公开部署的 CodeVault 云同步服务，也没有在扩展中接入广告、行为分析或遥测 SDK。
+CodeVault 是帮助用户整理 LeetCode 题目、代码解法、笔记及可选 AI 分析的浏览器扩展。基础功能无需注册 CodeVault 账号；默认云同步服务仅向受邀测试邮箱开放，暂不提供公开注册，也没有在扩展中接入广告、行为分析或遥测 SDK。
 
 ## 处理哪些数据及用途
 
@@ -29,11 +29,11 @@ AI 是可选功能。用户选定服务、输入自己的密钥并授权对应 H
 
 ## 可选云同步（v0.4开发预览）
 
-当前main分支允许自行配置HTTPS后端，尚无公开云服务。请求邮箱验证码会将邮箱发送给所选服务及其邮件供应商；验证成功会在该服务建立独立账号。登录本身不会上传知识库。用户须明确确认账号绑定及上传授权，才会同步已保存题目、代码、笔记、图片、分析、回收站及迁移备份；不发送AI配置、API Key或未保存草稿。云同步不是端到端加密，所选服务运营者能够处理同步内容，邮件/存储供应商也按其职责处理相关数据；请选择可信服务。
+当前main分支允许自行配置HTTPS后端，默认服务为受邀邮箱封闭测试，使用Cloudflare Workers、D1及私有R2存储，验证码由Resend发送。请求邮箱验证码会将邮箱发送给所选服务及其邮件供应商；验证成功会在该服务建立独立账号。登录本身不会上传知识库。用户须明确确认账号绑定及上传授权，才会同步已保存题目、代码、笔记、图片、分析、回收站及迁移备份；不发送AI配置、API Key或未保存草稿。云同步不是端到端加密，所选服务运营者能够处理同步内容，邮件/存储供应商也按其职责处理相关数据；请选择可信服务。
 
 服务保存邮箱、验证码的加密校验值、会话令牌哈希及按密钥哈希处理的限流标识，不持久保存明文验证码或登录令牌。扩展在本机保存登录令牌、同步基线、待发送队列和冲突归档，没有额外的静态加密；这些内容不包含在手动知识库备份中。冲突导出文件另含双方完整内容与图片，未加密，请妥善保管。
 
-用户可暂停自动同步或退出账号，本机内容继续保留。离线退出不保证服务端令牌已撤销，界面会说明；会话最长30天有效。切换账号不会自动清空本机知识库，重新绑定前会提示旧账号留存内容可能上传到新账号。云端删除使用版本标记防止旧设备静默恢复。清除云端账号需近期登录和再次明确确认；后端接口已提供，设置页入口及真实云端验收将在公开服务前完善。
+用户可暂停自动同步或退出账号，本机内容继续保留。离线退出不保证服务端令牌已撤销，界面会说明；会话最长30天有效。切换账号不会自动清空本机知识库，重新绑定前会提示旧账号留存内容可能上传到新账号。云端删除使用版本标记防止旧设备静默恢复。清除云端账号需近期登录和再次明确确认；设置页已提供入口。清除结果待确认时暂停同步，可重试或验证账号仍存在后取消。退出或清号后仍可导出本机冲突归档。
 
 云端账号清除会立即撤销访问并排队删除私有图片；实际图片清理依赖定时任务和存储成功响应，不承诺请求结束时已物理删除。回收站保留图片引用，未引用图片有24小时宽限期，未完成上传约15分钟后进入清理。过期会话、验证码校验值和到期限流标识由定时任务清理，限流标识窗口最长一天。扩展内退出、删除或卸载不会自动删除已经导出的备份文件。
 
@@ -63,7 +63,7 @@ v0.2.0 尚不提供完整题库清空、单题删除或数据导出界面。v0.3
 
 ## English summary
 
-The unreleased v0.4 preview optionally connects to a user-configured HTTPS backend. Email-code login sends your address to that service and its mail provider; login alone does not upload the library. Explicit account-binding consent enables synchronization of saved library content, images, trash and legacy backups, excluding API keys and AI settings. Cloud sync is not end-to-end encrypted; the chosen operator can process the content. Tokens, baselines, pending work and conflict archives stay in extension storage without extra at-rest encryption and are excluded from ordinary backups. Signing out keeps local data; offline server revocation may be unconfirmed. Switching accounts needs consent and may upload content retained from the prior account. Server sessions expire after 30 days. Cloud account deletion revokes access and queues private image cleanup; physical deletion is eventual. The backend deletion API exists, with its settings UI and real cloud acceptance still required before public rollout. No public service is currently deployed.
+The unreleased v0.4 preview optionally connects to a user-configured HTTPS backend. Email-code login sends your address to that service and its mail provider; login alone does not upload the library. Explicit account-binding consent enables synchronization of saved library content, images, trash and legacy backups, excluding API keys and AI settings. Cloud sync is not end-to-end encrypted; the chosen operator can process the content. Tokens, baselines, pending work and conflict archives stay in extension storage without extra at-rest encryption and are excluded from ordinary backups. Signing out keeps local data; offline server revocation may be unconfirmed. Switching accounts needs consent and may upload content retained from the prior account. Server sessions expire after 30 days. Cloud account deletion revokes access and queues private image cleanup; physical deletion is eventual. The settings page provides deletion with recent-login confirmation; unconfirmed deletion pauses sync until retried or verified as canceled. Local conflict archives can still be exported after logout/deletion. The default backend is an email-allowlisted closed pilot using Cloudflare Workers, D1 and private R2, with Resend for verification mail; public registration is unavailable.
 
 
 The interface language preference is stored locally. It controls interface text and the requested language of new AI analyses; existing user content is unchanged.

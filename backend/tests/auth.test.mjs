@@ -8,7 +8,7 @@ async function setup(t){
  const {db,adapter}=await database();t.after(()=>db.close());
  const mail=[];let deliveryStatus=200;
  const transport=mock.method(globalThis,'fetch',async(url,options)=>{
-   assert.equal(url,'https://api.resend.com/emails');assert.equal(options.redirect,'error');assert.ok(options.signal);
+   assert.equal(url,'https://api.resend.com/emails');assert.equal(options.redirect,'manual');assert.ok(options.signal);
    const body=JSON.parse(options.body);const code=body.text.match(/\b\d{6}\b/)[0];
    assert.ok(!body.subject.includes(code));assert.match(options.headers['Idempotency-Key'],/^codevault-otp\//);
    mail.push({code,to:body.to[0],text:body.text});return new Response('{}',{status:deliveryStatus});
@@ -28,6 +28,8 @@ test('auth fails closed, rejects oversized/invalid bodies and disallowed origins
  assert.equal((await f.call('/v1/auth/request-code',{email,padding:'x'.repeat(5000)})).status,400);
  assert.equal((await f.call('/v1/auth/request-code',{email},undefined,'POST','192.0.2.1','https://evil.test')).status,403);
  assert.equal(f.mail.length,0);assert.equal(f.db.prepare('SELECT count(*) n FROM auth_users').get().n,0);
+ f.env.AUTH_ALLOWED_EMAILS='[]';assert.equal((await f.call('/v1/auth/request-code',{email})).status,503);
+ f.env.AUTH_ALLOWED_EMAILS=JSON.stringify(['pilot@example.test']);assert.equal((await f.call('/v1/auth/request-code',{email})).status,403);assert.equal(f.mail.length,0);
 });
 
 test('OTP issues hashed session for verified email, restores identity and logout revokes sync access',async t=>{

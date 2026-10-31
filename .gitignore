@@ -24,3 +24,9 @@ releases/
 .dev.vars
 .dev.vars.*
 !.dev.vars.example
+
+# Independent cloud deployment identifiers and secrets
+/backend/.cloud-target.json
+/backend/.cloud-secrets.json
+/backend/wrangler.cloud.json
+/backend/.cloud-*.json

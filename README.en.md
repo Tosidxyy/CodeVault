@@ -7,7 +7,7 @@ CodeVault is a local-first browser extension for your LeetCode algorithm library
 
 Release baseline: **v0.3.0**. This release adds backup/restore, a recycle bin, filters, sorting, a draggable panel and English/Chinese interfaces. Chrome Web Store availability depends on the installed release.
 
-The main branch includes an **unreleased v0.4 cloud-sync preview**. Configure your own backend, sign in and explicitly consent before merging your library; conflicts and retries are supported. No public service is deployed. Auth tokens, sync metadata and local layout are excluded from manual backups.
+The main branch includes an **unreleased v0.4 cloud-sync preview**. Configure your own backend, sign in and explicitly consent before merging your library; conflicts and retries are supported. The default service is deployed as an email-allowlisted closed pilot; public registration is unavailable. Auth tokens, sync metadata and local layout are excluded from manual backups.
 
 ## Features
 

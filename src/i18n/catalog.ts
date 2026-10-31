@@ -105,7 +105,7 @@ Object.assign(english, {
 
 Object.assign(english, {
   "云同步": "Cloud sync",
-  "开发预览：服务尚未部署。配置可用后端后登录，明确授权才会上传。离线使用与手动备份保持可用。": "Development preview: the service is not deployed. Sign in to a configured backend and explicitly authorize uploads. Offline use and manual backups remain available.",
+  "开发预览：默认服务仅向受邀测试邮箱开放。登录并明确授权后才会上传。离线使用与手动备份保持可用。": "Development preview: the default service is limited to invited test emails. Uploads require sign-in and explicit consent. Offline use and manual backups remain available.",
   "同步题目、解法、图文笔记、分析与回收站，不同步 API Key。同步后请刷新已打开的题目页；未保存草稿不会上传。": "Sync problems, solutions, illustrated notes, analyses and trash, excluding API keys. Refresh open problem pages after syncing. Unsaved drafts are not uploaded.",
   "云同步服务地址": "Cloud service URL",
   "登录邮箱": "Sign-in email",
@@ -159,4 +159,18 @@ Object.assign(english, {
   "本地内容已变化，请重新检查冲突。": "Local content changed. Review the conflict again.",
   "冲突归档已满，请先导出并联系开发者。": "Conflict archive is full. Export it and contact the developer.",
   "不支持的同步操作。": "Unsupported sync operation."
+});
+
+Object.assign(english, {
+  "清除云账号前，请重新验证邮箱。": "Verify your email again before deleting the cloud account.",
+  "云账号清除结果待确认，已暂停同步。": "Cloud deletion is unconfirmed. Sync is paused.",
+  "请明确确认清除当前云账号。": "Explicitly confirm deletion of this cloud account.",
+  "云账号已清除，图片已排队删除；本机知识库与备份保持不变。": "Cloud account deleted; image cleanup is queued. Local knowledge and backups are unchanged.",
+  "重新验证邮箱": "Verify email again",
+  "清除云端账号": "Delete cloud account",
+  "清除云账号确认": "Confirm cloud account deletion",
+  "这会清除当前账号的云端题目、解法、笔记与图片访问，并撤销全部设备登录。图片排队物理删除；本机知识库、冲突归档和已导出的备份不会删除。": "This removes cloud problems, solutions, notes and image access and revokes all device sessions. Physical image deletion is queued. Local knowledge, conflict archives and exported backups remain.",
+  "我确认清除当前云账号，保留本机内容。": "I confirm cloud account deletion while keeping local data.",
+  "确认清除云账号": "Confirm cloud account deletion",
+  "验证账号仍存在并取消待确认清除": "Verify account exists and cancel pending deletion"
 });

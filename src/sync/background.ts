@@ -1,4 +1,4 @@
-import { accountKey, applyRemote, emptyState, readEntry, snapshot, writeEntry } from './local';
+import { accountKey, applyRemote, emptyState, exportConflictArchive, readEntry, snapshot, writeEntry } from './local';
 import type { Auth, Pending, State } from './local';
 import { canonical, equivalent, planSync, validateDocument } from './protocol';
 import type { CloudRecord, Conflict, SyncDocument } from './protocol';
@@ -26,6 +26,7 @@ async function request(auth:Pick<Auth,'origin'> & Partial<Auth>,path:string,meth
   try{response=await fetch(auth.origin+path,{method,credentials:'omit',redirect:'error',cache:'no-store',signal:controller?AbortSignal.any([controller.signal,AbortSignal.timeout(30000)]):AbortSignal.timeout(30000),headers:{...(auth.token?{Authorization:'Bearer '+auth.token}:{}),...(body!==undefined?{'Content-Type':png?'image/png':'application/json'}:{})},...(body!==undefined?{body:png?new Uint8Array(body as Uint8Array).buffer:JSON.stringify(body)}:{})});}
   catch{throw Error(text.offline);}
   if(response.status===401){await response.body?.cancel();throw Error(path.endsWith('/verify-code')?'验证码无效或已过期。':text.expired);}
+  if(response.status===403&&path==='/v1/auth/account'){await response.body?.cancel();throw Error('清除云账号前，请重新验证邮箱。');}
   if(response.status===429){await response.body?.cancel();throw Error('请求过于频繁，请稍后重试。');}
   if(response.status!==409&&!response.ok){await response.body?.cancel();throw Error(text.offline);}
   const raw=await bytes(response,2*1024*1024+1024);
@@ -69,7 +70,7 @@ async function flush(auth:Auth,state:State,cache:Map<string,Uint8Array>){
   }
 }
 async function cycle(){
-  const auth=await active(),state=await stateFor(auth);if(!state.bound)throw Error(text.bound);
+  const auth=await active(),state=await stateFor(auth);if(!state.bound)throw Error(text.bound);if(state.deleting)throw Error('云账号清除结果待确认，已暂停同步。');
   const cache=new Map<string,Uint8Array>();await flush(auth,state,cache);
   const remote:CloudRecord[]=[];let after='',total=0;const seen=new Set<string>();
   for(let page=0;;page++){
@@ -106,10 +107,11 @@ async function handle(message:Record<string,unknown>){
   if(action==='status'){
     const readingBusy=busy,readingRun=runId;
     const auth=await readEntry<Auth>('auth'),state=auth?await stateFor(auth):emptyState();
-    return {user:auth?.user,origin:auth?.origin,expired:auth?auth.expiresAt<=Date.now():false,busy:readingBusy||busy||readingRun!==runId,runId,completedRun,bound:state.bound,auto:state.auto,pending:state.pending.length,lastSync:state.lastSync,error:state.error,notice:await readEntry<string>('sync-notice'),conflicts:state.conflicts.map(row=>({id:row.id,revision:row.remote.revision,local:summary(row.local),remote:summary(row.remote.document)}))};
+    return {user:auth?.user,origin:auth?.origin,expired:auth?auth.expiresAt<=Date.now():false,busy:readingBusy||busy||readingRun!==runId,runId,completedRun,bound:state.bound,auto:state.auto,deleting:!!state.deleting,pending:state.pending.length,lastSync:state.lastSync,error:state.error,notice:await readEntry<string>('sync-notice'),conflicts:state.conflicts.map(row=>({id:row.id,revision:row.remote.revision,local:summary(row.local),remote:summary(row.remote.document)}))};
   }
   if(action==='start')return start();
   if(action==='changed'){await scheduleSync();return null;}
+  if(action==='export-conflicts')return exportConflictArchive();
   if(action==='request-code'){
     const origin=validOrigin(message.origin),email=String(message.email??'').trim().toLowerCase();
     const response=await request({origin},'/v1/auth/request-code','POST',{email,locale:message.locale==='en'?'en':'zh'});
@@ -129,12 +131,24 @@ async function handle(message:Record<string,unknown>){
     await writeEntry('auth',null);await writeEntry('sync-notice',notice);return null;
   }
   const auth=await active(),state=await stateFor(auth);
+  if(action==='delete-account'){
+    if(message.accountId!==auth.user.id||message.confirmation!=='DELETE')throw Error('请明确确认清除当前云账号。');
+    state.auto=false;state.deleting=true;await writeEntry(accountKey(auth),state);
+    const response=await request(auth,'/v1/auth/account','DELETE',{confirmation:'DELETE'});
+    if(response.status!==200||(response.data as {ok?:boolean}).ok!==true)throw Error('云账号清除结果待确认，已暂停同步。');
+    await writeEntry('auth',null);await writeEntry('sync-notice','云账号已清除，图片已排队删除；本机知识库与备份保持不变。');return null;
+  }
+  if(action==='cancel-deletion'){
+    const response=await request(auth,'/v1/auth/session');
+    if((response.data as {user?:{id:string}}).user?.id!==auth.user.id)throw Error(text.expired);
+    state.deleting=false;state.error='';await writeEntry(accountKey(auth),state);return null;
+  }
+  if(state.deleting)throw Error('云账号清除结果待确认，已暂停同步。');
   if(action==='bind'){
     if(message.accountId!==auth.user.id||message.consent!==true)throw Error(text.bound);
     state.bound=true;state.auto=true;await writeEntry(accountKey(auth),state);await scheduleSync();return null;
   }
   if(action==='auto'){state.auto=message.enabled===true;await writeEntry(accountKey(auth),state);if(state.auto)await scheduleSync();return null;}
-  if(action==='export-conflicts')return {format:'codevault-sync-conflicts',version:1,exportedAt:new Date().toISOString(),conflicts:state.conflicts,archive:await readEntry('archive:'+accountKey(auth))??[]};
   if(action==='resolve'){
     if(!state.bound)throw Error(text.bound);
     const found=state.conflicts.find(row=>row.id===message.id);if(!found||found.remote.revision!==message.revision)throw Error('冲突已变化，请刷新后重试。');
@@ -153,7 +167,7 @@ chrome.runtime.onMessage.addListener((message:unknown,sender,respond)=>{
   if(!message||typeof message!=='object'||(message as Record<string,unknown>).channel!=='codevault-sync')return false;
   if(sender.id!==chrome.runtime.id||sender.url!==chrome.runtime.getURL('options.html')){respond({ok:false,error:'Sync settings access denied'});return false;}
   const data=message as Record<string,unknown>;
-  if(['logout','auto','verify-code','request-code'].includes(String(data.action)))controller?.abort();
+  if(['logout','auto','verify-code','request-code','delete-account','cancel-deletion'].includes(String(data.action)))controller?.abort();
   const task=['status','start','changed'].includes(String(data.action))?handle(data):locked(()=>handle(data));
   void task.then(value=>respond({ok:true,data:value})).catch(error=>respond({ok:false,error:error instanceof Error?error.message:text.offline}));return true;
 });

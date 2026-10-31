@@ -1,7 +1,7 @@
 # Extension integration — v0.4 development preview
 
 The settings page now connects to a configured HTTPS CodeVault backend. The
-default suggested service is not deployed. This is not a v0.4 release or a claim
+default suggested service is deployed as an email-allowlisted closed pilot. This is not a v0.4 release or a claim
 that a public cloud service is available. Development builds still carry the
 v0.3.0 package version pending release preparation.
 
@@ -29,8 +29,11 @@ different account requires fresh consent before that account can receive the
 shared local library. Content from a previous account remains local: switching
 accounts is **not** an automatic isolated-library switch.
 
-Cloud account deletion exists in the backend but does not yet have a settings UI;
-that control and actual deployment acceptance are required before public rollout.
+Settings include recent-login cloud account deletion with an explicit confirmation.
+An unconfirmed response persists a deletion intent and pauses synchronization.
+Retry deletion or verify that the account still exists before canceling the intent;
+canceling leaves automatic synchronization off. Local knowledge and conflict
+archives survive deletion/logout. Archive export remains available while logged out.
 
 ## Persistence and concurrency
 

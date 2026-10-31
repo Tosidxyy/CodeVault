@@ -89,4 +89,18 @@ test('two isolated devices sign in, bind, sync images, resolve conflicts and rep
  await b.page.setViewportSize({width:360,height:760});assert.equal(await b.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await b.page.waitForFunction(()=>{const text=document.querySelector('.cloud-settings')?.textContent||'';return /待同步\s*:\s*0/.test(text)&&!text.includes('无法连接');});await b.page.getByRole('region',{name:'云同步',exact:true}).screenshot({path:'test-results/cloud-sync-mobile.png'});
  const popup=await b.context.newPage();await popup.goto(b.page.url().replace('options.html','popup.html'));assert.equal((await popup.evaluate(()=>chrome.runtime.sendMessage({channel:'codevault-sync',action:'status'}))).ok,false);await popup.close();
  await b.call('logout');assert.equal((await b.call('status')).user,undefined);assert.equal((await b.storage('notes.get',{problemId:problem.id})).blocks[0].content,'网络断开后的持久内容');
+ assert.ok(JSON.stringify(await b.call('export-conflicts')).includes('设备B的离线内容'));
+ const cloud=a.page.getByRole('region',{name:'云同步',exact:true});await cloud.getByRole('button',{name:'清除云端账号',exact:true}).click();
+ const confirmation=cloud.getByRole('group',{name:'清除云账号确认',exact:true});assert.equal(await confirmation.getByRole('button',{name:'确认清除云账号',exact:true}).isEnabled(),false);
+ await confirmation.getByLabel('我确认清除当前云账号，保留本机内容。',{exact:true}).check();
+ adapter.beforeRun=sql=>{if(sql.startsWith('DELETE FROM sync_sessions WHERE user_id IN'))throw Error('fixture cloud deletion rollback');};
+ await confirmation.getByRole('button',{name:'确认清除云账号',exact:true}).click();
+ await a.page.waitForFunction(async()=>(await chrome.runtime.sendMessage({channel:'codevault-sync',action:'status'})).data.deleting===true);
+ adapter.beforeRun=undefined;await cloud.getByRole('button',{name:'验证账号仍存在并取消待确认清除',exact:true}).click();
+ await a.page.waitForFunction(async()=>(await chrome.runtime.sendMessage({channel:'codevault-sync',action:'status'})).data.deleting===false);
+ await confirmation.getByRole('button',{name:'确认清除云账号',exact:true}).click();
+ await a.page.waitForFunction(async()=>!(await chrome.runtime.sendMessage({channel:'codevault-sync',action:'status'})).data.user);
+ assert.equal(db.prepare('SELECT count(*) n FROM auth_users').get().n,0);assert.equal(db.prepare('SELECT count(*) n FROM sync_documents').get().n,0);
+ assert.equal((await a.storage('notes.get',{problemId:problem.id})).blocks[0].content,'网络断开后的持久内容');
+ assert.ok(JSON.stringify(await b.call('export-conflicts')).includes('设备B的离线内容'));
 });

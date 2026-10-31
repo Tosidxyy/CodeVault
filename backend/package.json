@@ -1,0 +1,24 @@
+{
+  "name": "@codevault/backend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "dev": "wrangler dev --config wrangler.local.jsonc --local",
+    "build": "wrangler deploy --config wrangler.local.jsonc --dry-run --outdir ../test-results/backend-build",
+    "test:runtime": "node --experimental-strip-types --test tests/runtime/*.test.mjs",
+    "cloud:prepare": "node scripts/cloud.mjs prepare",
+    "cloud:build": "node scripts/cloud.mjs build",
+    "cloud:migrate": "node scripts/cloud.mjs migrate",
+    "cloud:secrets": "node scripts/cloud.mjs secrets",
+    "cloud:deploy": "node scripts/cloud.mjs deploy",
+    "cloud:status": "node scripts/cloud.mjs status"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "miniflare": "5.20261023.3-beta",
+    "wrangler": "4.156.0"
+  }
+}

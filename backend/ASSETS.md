@@ -1,4 +1,4 @@
-# Private image storage (development, not deployed)
+# Private image storage (closed pilot)
 
 Apply migrations 0001–0003 to the **independent CodeVault D1**. Bind a dedicated
 private R2 bucket as `ASSETS`. Do not share Guidy's database or bucket. Do not
@@ -81,5 +81,7 @@ limits/latency, quotas and deletion progress.
 Tests use actual SQLite transactions and repository PNGs with a memory R2 double.
 They cover integrity, isolation, shared references, rollback, conflicting replay,
 GC/publication races, late writes, cursor continuation, quotas, revocation and
-account deletion retries. They do not verify actual Workers/R2/D1 runtime behavior,
-real cloud resources or an extension UI. No production bucket was created.
+account deletion retries. A separate local Workers runtime test covers D1/R2 and scheduled cleanup.
+The independent closed-pilot bucket has also passed real HTTPS PNG upload/download
+integrity and document round trips. Production scheduled deletion progress and
+full signed-extension acceptance remain separate checks.

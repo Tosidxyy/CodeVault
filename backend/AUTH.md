@@ -1,4 +1,4 @@
-# Independent CodeVault authentication (development, not deployed)
+# Independent CodeVault authentication (closed pilot)
 
 This backend implements its own email OTP/opaque-session layer matching the sync
 protocol. It does **not** share Guidy Better Auth accounts, cookies, tokens,
@@ -86,9 +86,10 @@ are not reset by deleting an account. Migration 0003 adds durable image cleanup:
 in the same transaction and returns attachmentCleanup: "queued". Physical deletion
 is retried by scheduled cleanup; see ASSETS.md.
 
-Tests mock only the outbound mail transport, not OTPs or authorization. They use
-actual cryptography, actual generated codes from the mock message, SQLite SQL
-and atomic transactions. This is not yet a Cloudflare Workers runtime, real D1,
-DNS/domain verification, email-deliverability or browser-extension login test.
-No real emails are sent. Public deployment, extension UI, real inbox acceptance
-and provider bounce/suppression handling remain separate rollout work.
+Contract tests mock outbound mail and exercise real cryptography/SQLite. The
+separate local Workers runtime test covers the actual outbound-fetch code path;
+manual redirect mode rejects non-success responses without following redirects.
+Real inbox login has passed in the closed pilot. `AUTH_ALLOWED_EMAILS` is a JSON
+array of 1–5 invited addresses; malformed configuration fails closed. Leaving it
+unset permits general email registration, so pilot deployment guards require it.
+Provider bounce/suppression operations remain required before public rollout.

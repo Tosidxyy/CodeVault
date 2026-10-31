@@ -6,7 +6,7 @@ import type { StoredNote, StoredProblem, StoredSolution } from '../database/type
 
 export interface Auth { origin:string; token:string; user:{id:string;email:string}; expiresAt:number }
 export interface Pending { id:string; baseRevision:number; mutationId:string; document:SyncDocument|null }
-export interface State { bound:boolean; auto:boolean; baseline:CloudRecord[]; pending:Pending[]; conflicts:Conflict[]; lastSync?:number; error?:string }
+export interface State { bound:boolean; auto:boolean; baseline:CloudRecord[]; pending:Pending[]; conflicts:Conflict[]; lastSync?:number; error?:string; deleting?:boolean }
 export const emptyState=():State=>({bound:false,auto:false,baseline:[],pending:[],conflicts:[]});
 export const accountKey=(auth:Auth)=>'account:'+auth.origin+':'+auth.user.id;
 export async function readEntry<T>(key:string):Promise<T|undefined> {
@@ -16,6 +16,13 @@ export async function writeEntry(key:string,value:unknown):Promise<void> {
   const db=await openDatabase();return new Promise((resolve,reject)=>{const tx=db.transaction('sync','readwrite');tx.objectStore('sync').put({key,value});tx.oncomplete=()=>resolve();tx.onabort=()=>reject(tx.error);});
 }
 interface Rows { problems:StoredProblem[]; solutions:StoredSolution[]; notes:StoredNote[] }
+export async function exportConflictArchive():Promise<unknown> {
+  const db=await openDatabase();return new Promise((resolve,reject)=>{
+    const tx=db.transaction('sync'),request=tx.objectStore('sync').getAll();
+    tx.oncomplete=()=>resolve({format:'codevault-sync-conflicts',version:1,exportedAt:new Date().toISOString(),accounts:request.result.filter((row:{key:string})=>row.key.startsWith('account:')||row.key.startsWith('archive:')).map((row:{key:string;value:State|Conflict[]})=>({account:row.key,conflicts:Array.isArray(row.value)?row.value:row.value.conflicts}))});
+    tx.onabort=()=>reject(tx.error);
+  });
+}
 function bundle(rows:Rows,id:string):SyncDocument|null|undefined {
   const problem=rows.problems.find(p=>p.id===id);if(!problem)return undefined;
   if((problem as StoredProblem & {purged?:boolean}).purged)return null;

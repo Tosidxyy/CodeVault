@@ -7,6 +7,7 @@ export interface AuthEnv {
   AUTH_SECRET?: string;
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
+  AUTH_ALLOWED_EMAILS?: string;
 }
 export interface Session { user_id: string; email: string; expires_at: number; issued_at: number; tokenHash: string }
 const minute = 60_000, hour = minute * 60, day = hour * 24;
@@ -68,7 +69,7 @@ async function deliver(env: AuthEnv, address: string, otp: string, challengeId: 
     ? `你的 CodeVault 登录验证码为：${otp}\n\n验证码在5分钟内有效，只能使用一次。请勿向任何人透露。\n如果不是你本人发起的登录，请忽略此邮件。`
     : `Your CodeVault sign-in code is: ${otp}\n\nThis code expires in 5 minutes and can be used once. Do not share it.\nIf you did not request this, ignore this email.`;
   const response = await fetch('https://api.resend.com/emails', {
-    method:'POST',redirect:'error',signal:AbortSignal.timeout(10_000),
+    method:'POST',redirect:'manual',signal:AbortSignal.timeout(10_000),
     headers:{Authorization:`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json','Idempotency-Key':`codevault-otp/${challengeId}`},
     body:JSON.stringify({from:`CodeVault <${env.EMAIL_FROM}>`,to:[address],subject:locale==='zh'?'CodeVault 登录验证码':'Your CodeVault sign-in code',text}),
   });
@@ -90,6 +91,12 @@ export async function authRoute(request: Request, env: AuthEnv): Promise<Respons
       if (Object.keys(body).some(k=>!allowed.includes(k)) || (body.locale!==undefined && !['zh','en'].includes(body.locale as string))) throw new Error();
       if (path.endsWith('/verify-code') && (typeof body.challengeId!=='string' || !/^[a-f0-9]{64}$/.test(body.challengeId) || typeof body.code!=='string' || !/^\d{6}$/.test(body.code))) throw new Error();
     } catch { return json({error:'Invalid sign-in request'},400); }
+    if(env.AUTH_ALLOWED_EMAILS!==undefined){
+      let allowed:string[];
+      try{const value:unknown=JSON.parse(env.AUTH_ALLOWED_EMAILS);if(!Array.isArray(value)||!value.length||value.length>5)throw new Error();allowed=value.map(email);}
+      catch{return json({error:'Sign-in is not available'},503);}
+      if(!allowed.includes(address))return json({error:'Sign-in is not available for this pilot'},403);
+    }
     // CF-Connecting-IP is supplied by Cloudflare. Missing IP shares a restrictive
     // bucket; never accept client-provided X-Forwarded-For as an alternate key.
     const ip=request.headers.get('CF-Connecting-IP') || 'unknown';

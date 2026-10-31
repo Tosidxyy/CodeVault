@@ -4,3 +4,6 @@ AUTH_ENABLED=false
 AUTH_SECRET=
 RESEND_API_KEY=
 EMAIL_FROM=
+
+# Optional closed-pilot allowlist. Malformed/nonmatching entries reject login.
+# AUTH_ALLOWED_EMAILS=["tester@example.com"]
