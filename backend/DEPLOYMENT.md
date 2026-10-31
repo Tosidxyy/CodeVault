@@ -103,6 +103,8 @@ and signed store update flow still need independent acceptance.
 Read-only inspection confirmed scheduled reconciliation had run and the earlier
 API fixture's image journal row had been reclaimed. New test images were queued
 through the normal API; queue depth may remain nonzero until a later Cron run.
+After the next scheduled window, the check returned zero queued image deletions
+and zero retained image rows for both recorded API and live-extension QA fixtures.
 This does not promise a deletion deadline. Remaining release gates include
 provider bounce/suppression operations, operational limits, independent-device
 logins, native store prompts and store release metadata.
