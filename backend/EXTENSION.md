@@ -91,6 +91,20 @@ task recovery, privileged-RPC denial from the popup, logout and narrow layout.
 It is not actual Cloudflare runtime, public DNS/TLS, real mail, native permission
 dialog acceptance, periodic-alarm delivery or signed Web Store distribution QA.
 
+A separate closed-pilot acceptance on 2026-10-31 exercised two isolated Edge
+profiles against real HTTPS Workers/D1/R2 using a previously inbox-verified session
+restored into both profiles. It passed exact code/PNG recovery, a CDP network
+outage on the extension service-worker target, restart/retry, retained conflict
+copies, real save-triggered alarm delivery, trash/permanent-delete propagation
+and actual optional-host request/removal. No cloud response/fetch mocks were used.
+Independent email logins, manual store permission prompts, the five-minute periodic
+alarm and signed-distribution acceptance remain separate. See [deployment](DEPLOYMENT.md).
+
+Cloud settings now share the existing bordered controls, spaced consent cards and
+status panels. Desktop and 360px Chinese/English layouts, reauthentication and
+delete-confirmation/cancel flows passed with no page errors; no real account was
+deleted or extra email sent during visual QA.
+
 The separate upgrade test accepts the saved v0.2.0 or v0.3.0 baseline ZIP. It
 requires same extension ID and actual update event, verifies the new empty sync
 store/schema v6, and compares every original knowledge/settings field before and

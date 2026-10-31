@@ -54,6 +54,16 @@ npm --prefix backend run cloud:secrets
 npm --prefix backend run cloud:deploy
 ```
 
+Run `npm --prefix backend run cloud:check` after deployment. This read-only check
+verifies HTTPS health, anonymous access denial, exact allowed-origin preflight,
+foreign-origin rejection and disabled public R2 URLs/custom domains. It reports
+the deletion backlog and whether scheduled reconciliation has written its cursor,
+without reading library bodies or printing email/session credentials. If local
+ignored QA fixture metadata is available, it also reports remaining image journal
+rows for those exact fixtures. A cursor is evidence of a cleanup invocation, not
+a timestamp or a guarantee that the latest scheduled invocation succeeded.
+Deployment guards reject missing or changed 15-minute cleanup schedules.
+
 After verifying the sender, secrets, exact origins and invited addresses, set
 `AUTH_ENABLED` to `"true"` in the ignored generated config and redeploy. Retain
 `AUTH_ALLOWED_EMAILS`: removing it allows general registration. To close pilot
@@ -78,6 +88,21 @@ it keeps the account and all other records. Challenge/session/fixture files are
 ignored and contain sensitive data: never attach, commit or print them.
 
 Real inbox login and the above API/image checks passed on 2026-10-31. The fixture
-was removed. Remaining release gates include actual multi-device HTTPS extension
-flows, native permissions, alarm delivery, scheduled cloud deletion progress,
-email bounce/suppression operations, operating limits and store release metadata.
+was removed. Subsequent acceptance used two isolated Edge profiles with the actual
+extension background code and HTTPS service, restoring the previously verified
+session into both profiles. It did not test two independent email logins.
+
+The real cloud run passed exact code/PNG restoration, background-target network
+outage and browser-restart recovery, retained conflict copies, a real save-triggered
+alarm (without synthesized alarm events), trash/deletion propagation and real
+optional-host permission request/removal. Worker fetch and cloud responses were
+not mocked. Native permission APIs ran in automated Edge; this is not a manual
+Chrome Web Store prompt acceptance test. The five-minute periodic alarm interval
+and signed store update flow still need independent acceptance.
+
+Read-only inspection confirmed scheduled reconciliation had run and the earlier
+API fixture's image journal row had been reclaimed. New test images were queued
+through the normal API; queue depth may remain nonzero until a later Cron run.
+This does not promise a deletion deadline. Remaining release gates include
+provider bounce/suppression operations, operational limits, independent-device
+logins, native store prompts and store release metadata.

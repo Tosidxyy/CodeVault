@@ -10,5 +10,6 @@ export function validateConfig(config,target){
  if(config.d1_databases?.length!==1||config.d1_databases[0].binding!=='DB'||config.d1_databases[0].database_name!==names.database||!/^[a-f0-9-]{36}$/.test(config.d1_databases[0].database_id)||config.d1_databases[0].database_id==='00000000-0000-0000-0000-000000000001')throw Error('Unexpected D1 target');
  if(config.r2_buckets?.length!==1||config.r2_buckets[0].binding!=='ASSETS'||config.r2_buckets[0].bucket_name!==names.bucket)throw Error('Unexpected private image bucket');
  if(config.workers_dev!==false||config.observability?.enabled!==false||config.vars.ALLOWED_ORIGINS!==target.origins.join(',')||config.vars.AUTH_ALLOWED_EMAILS!==JSON.stringify(target.testEmails))throw Error('Pilot origin/privacy configuration mismatch');
+ if(config.triggers?.crons?.length!==1||config.triggers.crons[0]!=='*/15 * * * *')throw Error('Pilot requires recurring cleanup every 15 minutes');
  return config;
 }

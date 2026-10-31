@@ -14,7 +14,8 @@
     "cloud:migrate": "node scripts/cloud.mjs migrate",
     "cloud:secrets": "node scripts/cloud.mjs secrets",
     "cloud:deploy": "node scripts/cloud.mjs deploy",
-    "cloud:status": "node scripts/cloud.mjs status"
+    "cloud:status": "node scripts/cloud.mjs status",
+    "cloud:check": "node scripts/cloud.mjs check"
   },
   "devDependencies": {
     "esbuild": "0.28.2",

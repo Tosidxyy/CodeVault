@@ -12,7 +12,7 @@ function cli(args,{input,quiet=false}={}){
 }
 function databases(){return JSON.parse(cli(['d1','list','--json'],{quiet:true}));}
 const action=process.argv[2];
-if(!['prepare','build','migrate','secrets','deploy','status'].includes(action))throw Error('Choose prepare/build/migrate/secrets/deploy/status');
+if(!['prepare','build','migrate','secrets','deploy','status','check'].includes(action))throw Error('Choose prepare/build/migrate/secrets/deploy/status/check');
 // No credentials are read from Guidy or any other project.
 if(action==='prepare'){
  // Fail before creating D1 if R2 subscription/authentication is unavailable.
@@ -38,5 +38,31 @@ if(action==='prepare'){
   }
   if(action==='deploy')cli(['deploy',...args]);
   if(action==='status')cli(['deployments','list',...args]);
+  if(action==='check'){
+   const origin='https://'+names.domain;
+   const probe=async(path,expected,headers={})=>{
+    const response=await fetch(origin+path,{headers,redirect:'error',signal:AbortSignal.timeout(15000)});
+    await response.body?.cancel();if(response.status!==expected)throw Error('Cloud check failed: '+path+' HTTP '+response.status);
+   };
+   await probe('/health',200);await probe('/v1/sync/records',401);await probe('/health',403,{Origin:'https://untrusted.example'});
+   const allowed=await fetch(origin+'/health',{method:'OPTIONS',headers:{Origin:target.origins[0],'Access-Control-Request-Method':'GET'},redirect:'error',signal:AbortSignal.timeout(15000)});
+   await allowed.body?.cancel();if(allowed.status!==204||allowed.headers.get('Access-Control-Allow-Origin')!==target.origins[0])throw Error('Cloud exact-origin preflight failed');
+   const result=JSON.parse(cli(['d1','execute',names.database,'--remote',...args,'--json','--command',"SELECT (SELECT count(*) FROM asset_objects WHERE state='deleting') AS queued_image_deletions, (SELECT count(*) FROM asset_cleanup_cursor WHERE id=1) AS cleanup_cursor_present"],{quiet:true}));
+   const summary=result[0]?.results?.[0];if(!summary)throw Error('Cloud cleanup summary unavailable');
+   // Read-only inspection: no library bodies, email addresses or session secrets.
+   const developmentUrl=cli(['r2','bucket','dev-url','get',names.bucket,...args],{quiet:true});
+   const bucketDomains=cli(['r2','bucket','domain','list',names.bucket,...args],{quiet:true});
+   if(!developmentUrl.includes('Public access via the r2.dev URL is disabled.')||!bucketDomains.includes('There are no custom domains connected to this bucket.'))throw Error('Private R2 configuration could not be confirmed');
+   const qaCleanup=[];
+   for(const label of ['smoke','live-qa']){
+    let fixture;try{fixture=JSON.parse(await readFile(new URL('../.cloud-'+label+'.json',import.meta.url),'utf8'));}catch(error){if(error.code==='ENOENT')continue;throw error;}
+    if(!/^[a-f0-9-]{36}$/.test(fixture.owner)||!/^[a-f0-9]{64}$/.test(fixture.hash))throw Error('Invalid local QA cleanup metadata');
+    const query=`SELECT count(*) AS retained_objects FROM asset_objects WHERE user_id='${fixture.owner}' AND hash='${fixture.hash}'`;
+    const rows=JSON.parse(cli(['d1','execute',names.database,'--remote',...args,'--json','--command',query],{quiet:true}));
+    const retained=rows[0]?.results?.[0]?.retained_objects;if(!Number.isSafeInteger(retained))throw Error('QA cleanup inspection failed');
+    qaCleanup.push({fixture:label,retainedObjects:retained});
+   }
+   console.log(JSON.stringify({health:'ok',anonymousAccess:'denied',foreignOrigin:'denied',allowedOrigin:'exact',imageBucket:'private',...summary,qaCleanup}));
+  }
  }
 }

@@ -52,6 +52,12 @@ acceptance verified real inbox login, HTTPS D1/R2 writes, PNG integrity, idempot
 replay and stale-write rejection using only a disposable QA fixture.
 
 Public rollout still requires native extension permission dialogs, actual alarm
-and production cleanup progress, signed-distribution/multi-device HTTPS tests,
-provider bounce/suppression handling, operating limits and release preparation.
+and production cleanup progress, signed-distribution and independent-device login
+tests, provider bounce/suppression handling, operating limits and release preparation.
+Two isolated Edge profiles have now passed real HTTPS extension synchronization,
+offline/restart recovery, conflict preservation, save-triggered alarm delivery,
+deletion propagation and actual optional-host permission revocation. Both restored
+the same verified session. Scheduled reconciliation and reclamation of an earlier
+fixture were observed; this does not guarantee future cleanup latency. The
+read-only `npm --prefix backend run cloud:check` command checks deployment health.
 Guidy's application, database, storage and credentials are not shared or modified.
