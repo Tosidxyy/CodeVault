@@ -33,7 +33,7 @@ export function SyncSettings(){
   }
   const execute=(action:string,fields?:Record<string,unknown>)=>{void act(action,fields).catch(()=>{});};
   return <section className="data-settings cloud-settings" aria-label={t('云同步')}>
-    <h2>{t('云同步')}</h2><p>{t('开发预览：默认服务仅向受邀测试邮箱开放。登录并明确授权后才会上传。离线使用与手动备份保持可用。')}</p>
+    <h2>{t('云同步')}</h2><p>{t('云同步公测：使用邮箱验证码登录，明确授权后才会上传。服务有容量和频率限制，请同时保留本地备份。')}</p>
     <p>{t('同步题目、解法、图文笔记、分析与回收站，不同步 API Key。同步后请刷新已打开的题目页；未保存草稿不会上传。')}</p>
     {!status?.user||status.expired||reauth?<div className="cloud-login">
       <label>{t('云同步服务地址')}<input type="url" aria-label={t('云同步服务地址')} value={origin} onChange={event=>{setOrigin(event.target.value);setSent(false);}} disabled={working}/></label>

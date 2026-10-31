@@ -1,9 +1,8 @@
-# Extension integration — v0.4 development preview
+# Extension integration — v0.4.0 cloud sync public beta
 
-The settings page now connects to a configured HTTPS CodeVault backend. The
-default suggested service is deployed as an email-allowlisted closed pilot. This is not a v0.4 release or a claim
-that a public cloud service is available. Development builds still carry the
-v0.3.0 package version pending release preparation.
+The settings page connects to the default public-beta HTTPS service or another
+configured CodeVault backend. Login alone never uploads knowledge. The release
+package is v0.4.0; Chrome Web Store distribution is submitted separately.
 
 ## User flow
 

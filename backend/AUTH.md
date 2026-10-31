@@ -1,4 +1,4 @@
-# Independent CodeVault authentication (closed pilot)
+# Independent CodeVault authentication (public beta)
 
 This backend implements its own email OTP/opaque-session layer matching the sync
 protocol. It does **not** share Guidy Better Auth accounts, cookies, tokens,
@@ -91,5 +91,5 @@ separate local Workers runtime test covers the actual outbound-fetch code path;
 manual redirect mode rejects non-success responses without following redirects.
 Real inbox login has passed in the closed pilot. `AUTH_ALLOWED_EMAILS` is a JSON
 array of 1–5 invited addresses; malformed configuration fails closed. Leaving it
-unset permits general email registration, so pilot deployment guards require it.
-Provider bounce/suppression operations remain required before public rollout.
+unset permits general email registration, so invite-only deployment guards require it; public-beta registration must instead be explicitly selected in the ignored deployment target.
+Resend automatically suppresses hard bounces/complaints. Operators should monitor delivery and suppression events; this release does not install custom webhooks or automatically remove suppressions. See DEPLOYMENT.md.

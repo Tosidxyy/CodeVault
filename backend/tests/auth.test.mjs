@@ -21,7 +21,7 @@ async function setup(t){
 }
 
 test('auth fails closed, rejects oversized/invalid bodies and disallowed origins without sending email',async t=>{
- const f=await setup(t);f.env.AUTH_ENABLED='false';assert.equal((await f.call('/v1/auth/request-code',{email})).status,503);f.env.AUTH_ENABLED='true';
+ const f=await setup(t);const health=await (await f.call('/health')).json();assert.equal(health.registration,'public-beta');assert.equal(health.version,'0.4.0');assert.ok(!JSON.stringify(health).includes(f.env.AUTH_SECRET));f.env.AUTH_ENABLED='false';assert.equal((await (await f.call('/health')).json()).registration,'disabled');assert.equal((await f.call('/v1/auth/request-code',{email})).status,503);f.env.AUTH_ENABLED='true';
  assert.equal((await f.call('/v1/auth/request-code',{email:'not-an-email'})).status,400);
  assert.equal((await f.call('/v1/auth/request-code',{email,locale:'xx'})).status,400);
  assert.equal((await f.call('/v1/auth/request-code',{email,user_id:'other'})).status,400);

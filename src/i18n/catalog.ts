@@ -11,7 +11,7 @@ export const english: Record<string, string> = {
   '展开浮窗':'Expand panel','切换紧凑浮窗':'Use compact panel','展开模式':'Expanded mode','紧凑模式':'Compact mode','恢复默认位置和大小':'Reset position and size','浮窗移动区域':'Panel movement area',
   '拖动标题栏移动；聚焦后方向键移动，Shift加速':'Drag the header to move; focus it and use arrow keys. Hold Shift for larger steps.','点击打开；拖动图标移动位置':'Click to open; drag the icon to move',
   '题目、解法与笔记保存在本机':'Problems, solutions and notes stay on this device','AI 仅在主动测试或分析时调用':'AI is called only when you test or request analysis',
-  'CodeVault v0.3.0 · 收藏、解法与笔记保存在本机':'CodeVault v0.3.0 · Bookmarks, solutions and notes are stored locally',
+  'CodeVault v0.4.0 · 收藏、解法与笔记保存在本机':'CodeVault v0.4.0 · Bookmarks, solutions and notes are stored locally',
   '回收站':'Trash','回收站（${0}）':'Trash (${0})','返回收藏':'Back to bookmarks','找回移出的题目，保留你的积累。':'Recover removed problems and keep your work.',
   '不会自动清空。恢复保留所有关联内容。':'Trash is not emptied automatically. Restoring keeps all related content.','回收站是空的。':'Trash is empty.','没有匹配的回收站题目。':'No matching problems in trash.','刷新回收站':'Refresh trash',
   '移入回收站':'Move to trash','移入回收站：${0}':'Move to trash: ${0}','移入回收站？':'Move to trash?','移入回收站确认':'Confirm move to trash','确认移入回收站':'Confirm move to trash',
@@ -105,7 +105,7 @@ Object.assign(english, {
 
 Object.assign(english, {
   "云同步": "Cloud sync",
-  "开发预览：默认服务仅向受邀测试邮箱开放。登录并明确授权后才会上传。离线使用与手动备份保持可用。": "Development preview: the default service is limited to invited test emails. Uploads require sign-in and explicit consent. Offline use and manual backups remain available.",
+  "云同步公测：使用邮箱验证码登录，明确授权后才会上传。服务有容量和频率限制，请同时保留本地备份。": "Cloud sync public beta: sign in with an email code and explicitly authorize uploads. Capacity and rate limits apply; keep a local backup too.",
   "同步题目、解法、图文笔记、分析与回收站，不同步 API Key。同步后请刷新已打开的题目页；未保存草稿不会上传。": "Sync problems, solutions, illustrated notes, analyses and trash, excluding API keys. Refresh open problem pages after syncing. Unsaved drafts are not uploaded.",
   "云同步服务地址": "Cloud service URL",
   "登录邮箱": "Sign-in email",

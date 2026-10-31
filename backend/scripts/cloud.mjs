@@ -20,7 +20,7 @@ if(action==='prepare'){
  if(!buckets.includes(names.bucket))cli(['r2','bucket','create',names.bucket]);
  let list=databases();if(!list.some(row=>row.name===names.database)){cli(['d1','create',names.database]);list=databases();}
  const database=list.filter(row=>row.name===names.database);if(database.length!==1)throw Error('D1 identity is ambiguous');
- const config={name:names.worker,account_id:target.accountId,main:'src/worker.ts',compatibility_date:'2026-10-30',workers_dev:false,routes:[{pattern:names.domain,custom_domain:true}],observability:{enabled:false},triggers:{crons:['*/15 * * * *']},vars:{AUTH_ENABLED:'false',EMAIL_FROM:'codevault@auth.guidy.fun',ALLOWED_ORIGINS:target.origins.join(','),AUTH_ALLOWED_EMAILS:JSON.stringify(target.testEmails)},d1_databases:[{binding:'DB',database_name:names.database,database_id:database[0].uuid,migrations_dir:'migrations'}],r2_buckets:[{binding:'ASSETS',bucket_name:names.bucket}]};
+ const config={name:names.worker,account_id:target.accountId,main:'src/worker.ts',compatibility_date:'2026-10-30',workers_dev:false,routes:[{pattern:names.domain,custom_domain:true}],observability:{enabled:false},triggers:{crons:['*/15 * * * *']},vars:{AUTH_ENABLED:'false',EMAIL_FROM:'codevault@auth.guidy.fun',ALLOWED_ORIGINS:target.origins.join(','),...(target.registration==='public-beta'?{}:{AUTH_ALLOWED_EMAILS:JSON.stringify(target.testEmails)})},d1_databases:[{binding:'DB',database_name:names.database,database_id:database[0].uuid,migrations_dir:'migrations'}],r2_buckets:[{binding:'ASSETS',bucket_name:names.bucket}]};
  // Preserve explicit closed-pilot activation on subsequent preparation.
  try{const old=JSON.parse(await readFile(configPath,'utf8'));validateConfig(old,target);if(old.d1_databases[0].database_id!==database[0].uuid)throw Error('D1 changed');config.vars.AUTH_ENABLED=old.vars.AUTH_ENABLED;}catch(error){if(error.code!=='ENOENT')throw error;}
  validateConfig(config,target);await writeFile(configPath,JSON.stringify(config,null,2)+'\n');console.log('Independent CodeVault pilot configuration prepared.');
@@ -44,7 +44,11 @@ if(action==='prepare'){
     const response=await fetch(origin+path,{headers,redirect:'error',signal:AbortSignal.timeout(15000)});
     await response.body?.cancel();if(response.status!==expected)throw Error('Cloud check failed: '+path+' HTTP '+response.status);
    };
-   await probe('/health',200);await probe('/v1/sync/records',401);await probe('/health',403,{Origin:'https://untrusted.example'});
+   const healthResponse=await fetch(origin+'/health',{redirect:'error',signal:AbortSignal.timeout(15000)});
+   if(!healthResponse.ok)throw Error('Health endpoint unavailable');const health=await healthResponse.json();
+   const registration=config.vars.AUTH_ENABLED==='true'?(target.registration||'invite-only'):'disabled';
+   if(health.service!=='codevault-sync'||health.registration!==registration)throw Error('Live registration mode differs from deployment configuration');
+   await probe('/v1/sync/records',401);await probe('/health',403,{Origin:'https://untrusted.example'});
    const allowed=await fetch(origin+'/health',{method:'OPTIONS',headers:{Origin:target.origins[0],'Access-Control-Request-Method':'GET'},redirect:'error',signal:AbortSignal.timeout(15000)});
    await allowed.body?.cancel();if(allowed.status!==204||allowed.headers.get('Access-Control-Allow-Origin')!==target.origins[0])throw Error('Cloud exact-origin preflight failed');
    const result=JSON.parse(cli(['d1','execute',names.database,'--remote',...args,'--json','--command',"SELECT (SELECT count(*) FROM asset_objects WHERE state='deleting') AS queued_image_deletions, (SELECT count(*) FROM asset_cleanup_cursor WHERE id=1) AS cleanup_cursor_present"],{quiet:true}));
@@ -62,7 +66,7 @@ if(action==='prepare'){
     const retained=rows[0]?.results?.[0]?.retained_objects;if(!Number.isSafeInteger(retained))throw Error('QA cleanup inspection failed');
     qaCleanup.push({fixture:label,retainedObjects:retained});
    }
-   console.log(JSON.stringify({health:'ok',anonymousAccess:'denied',foreignOrigin:'denied',allowedOrigin:'exact',imageBucket:'private',...summary,qaCleanup}));
+   console.log(JSON.stringify({health:'ok',version:health.version,registration,anonymousAccess:'denied',foreignOrigin:'denied',allowedOrigin:'exact',imageBucket:'private',...summary,qaCleanup}));
   }
  }
 }

@@ -1,9 +1,10 @@
-# CodeVault sync backend — closed pilot
+# CodeVault sync backend — public beta
 
 Independent Cloudflare Workers/D1 synchronization core. Do not bind this migration
-or Worker to Guidy's database. The extension remains v0.3.0 with local storage;
-the main branch now includes optional extension login, account consent, a durable
-outbox and conflict UI. The default endpoint is deployed as an email-allowlisted closed pilot, not public registration. See [extension integration](EXTENSION.md) and [deployment](DEPLOYMENT.md).
+or Worker to Guidy's database. The extension remains local-first;
+v0.4.0 includes optional email login, explicit account consent, a durable outbox
+and conflict UI. The default endpoint accepts public-beta email registration.
+See [extension integration](EXTENSION.md) and [deployment](DEPLOYMENT.md).
 
 ## Checks
 
@@ -43,7 +44,7 @@ conflicts. Missing pages, missing local records and cloud revision regression
 are errors, not deletion instructions. Local permanent deletes must be explicitly
 enumerated as tombstones. Persist conflict copies before presenting resolution.
 
-## Verification and remaining rollout work
+## Verification and operating checks
 
 Contract tests use actual SQLite with mocked outbound mail/R2. The separate
 `npm --prefix backend run test:runtime` exercises real local Workers runtime,
@@ -51,9 +52,9 @@ D1 transactions, outbound mail transport, R2 and scheduled cleanup. Closed-pilot
 acceptance verified real inbox login, HTTPS D1/R2 writes, PNG integrity, idempotent
 replay and stale-write rejection using only a disposable QA fixture.
 
-Public rollout still requires native extension permission dialogs, actual alarm
-and production cleanup progress, signed-distribution and independent-device login
-tests, provider bounce/suppression handling, operating limits and release preparation.
+Release-package checks do not replace signed-store permission/update acceptance.
+Independent-device email logins and the five-minute periodic alarm remain
+additional acceptance checks. Keep monitoring delivery, storage and cleanup.
 Two isolated Edge profiles have now passed real HTTPS extension synchronization,
 offline/restart recovery, conflict preservation, save-triggered alarm delivery,
 deletion propagation and actual optional-host permission revocation. Both restored

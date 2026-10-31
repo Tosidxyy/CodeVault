@@ -12,7 +12,7 @@ npm run test:upgrade
 
 测试用旧版真实存储接口写入收藏、长代码、多解法、备注、分析、图文笔记、迁移原文/图片备份及虚构AI配置。完整替换临时目录为当前dist，保持浏览器运行，通过chrome.runtime.reload更新；要求扩展ID不变，并记录reason=update、previousVersion与基线一致。随后逐字段检查两个数据库，验证导出密钥排除，再离线重启再次核对。
 
-当前构建版本高于基线时使用实际版本（v0.3.0）；否则仅递增临时测试包版本。源代码Manifest、正式ZIP、标签不变。权限检测只为保存虚构密钥而模拟，不调用实际AI。最终摘要位于test-results/upgrade-preservation.json，不保存密钥；临时目录清理前检查绝对路径范围。
+当前构建版本高于基线时使用实际版本（当前v0.4.0）；否则仅递增临时测试包版本。源代码Manifest、正式ZIP、标签不变。权限检测只为保存虚构密钥而模拟，不调用实际AI。最终摘要位于test-results/upgrade-preservation.json，不保存密钥；临时目录清理前检查绝对路径范围。
 
 覆盖本地未打包扩展更新，不替代Chrome Web Store签名包分发验证。默认npm test仍覆盖已有迁移、回滚和恢复测试；新版本有数据库结构变更时应更新本专项基线与断言。
 

@@ -1,9 +1,9 @@
-# Closed-pilot deployment
+# CodeVault cloud deployment
 
-The default `https://codevault-api.guidy.fun` endpoint is a restricted development
-pilot. It is not public registration or a v0.4 Web Store release. Independent
-resources are `codevault-api-development` (Worker), `codevault-development` (D1)
-and `codevault-assets-development` (private R2). Never bind Guidy's resources.
+The default `https://codevault-api.guidy.fun` endpoint accepts public-beta email
+login for v0.4.0. Independent resources remain `codevault-api-development` (Worker),
+`codevault-development` (D1) and `codevault-assets-development` (private R2).
+The resource names are historical; never bind Guidy's database or bucket.
 
 ## Local checks
 
@@ -28,7 +28,7 @@ bridge. Native permission prompts and signed store distribution need separate QA
 Authenticate Wrangler to the intended Cloudflare account and enable R2. Create
 ignored `backend/.cloud-target.json` with `accountId`, `origins` (exact
 `chrome-extension://<id>` strings) and `testEmails` (1–5 invited addresses).
-These are deployment inputs, not public configuration or credentials.
+These are deployment inputs, not public configuration or credentials. Omitted `registration` defaults to invite-only. Explicit `registration: "public-beta"` allows a generated config without `AUTH_ALLOWED_EMAILS`. Test addresses are retained only for operator QA.
 
 ```sh
 npm --prefix backend run cloud:prepare
@@ -108,3 +108,35 @@ and zero retained image rows for both recorded API and live-extension QA fixture
 This does not promise a deletion deadline. Remaining release gates include
 provider bounce/suppression operations, operational limits, independent-device
 logins, native store prompts and store release metadata.
+
+
+## Public beta and rollback
+
+Public registration is an explicit deployment choice. In the ignored target set
+`registration` to `"public-beta"`; in the ignored generated config remove
+`AUTH_ALLOWED_EMAILS`, retain `AUTH_ENABLED: "true"`, exact extension origins,
+private R2 and the recurring Cron. Update both inputs together: guards reject an
+accidental allowlist removal under invite-only mode. Build, deploy, then run
+`cloud:check`; `/health` must report `registration: "public-beta"` and version
+`0.4.0`. No database reset, session rotation or resource replacement is needed.
+To return to invite-only, restore that mode and the exact target test-email JSON
+allowlist together, then deploy. To stop new login entirely, disable auth. These
+controls do not revoke existing sessions; logout-all/account removal are separate.
+
+Initial image limits remain 100MiB/1,000 objects per account, 2MiB per image;
+new objects and cleanup-pending objects count toward quotas. A sync pass is
+bounded to 64MiB/20,000 records. OTP limits remain one request per 60 seconds,
+three per address per hour, twenty per IP per hour and 300 globally per day;
+provider quotas may be lower. Preserve local backups and show errors on limits.
+
+Resend automatically suppresses hard bounces and spam complaints, as documented
+at https://resend.com/changelog/suppression-list-support . Monitor CodeVault's
+sending-domain delivery/suppression events and Cloudflare usage/cleanup counts
+in the provider dashboards. The extension only sends transactional codes on user
+request; it does not send marketing or automatically clear suppressions. Sending
+acceptance is not proof of delivery. No provider-wide suppression changes or
+custom webhook subscription are installed by this release. If capacity or abuse
+requires a pause, disable new login rather than deleting user data.
+
+Submit the extension ZIP to the existing store item so its extension ID stays in
+the exact CORS allowlist. A new store listing would require its own explicit origin.

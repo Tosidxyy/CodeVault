@@ -1,7 +1,7 @@
 import { canonical } from '../../src/sync/protocol.ts';
 import { validProblemId } from '../../src/database/validation.ts';
 
-import { authRoute, getSession, cleanupAuth } from './auth.ts';
+import { authRoute, getSession, cleanupAuth, configured } from './auth.ts';
 import { assetRoute, cleanupAssets, assetsReadyGuard, resolveAssets, referenceStatements } from './assets.ts';
 import type { AssetsEnv } from './assets.ts';
 import { validateWireDocument, imageGroups } from '../../src/sync/assets.ts';
@@ -14,7 +14,7 @@ const maxDocumentBytes = 700 * 1024;
 const record = (row: Row) => ({ id: row.problem_id, revision: row.revision, document: JSON.parse(row.document) });
 async function route(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
-  if (url.pathname === '/health' && request.method === 'GET') return json({ ok: true, service: 'codevault-sync', stage: 'asset-backend' });
+  if (url.pathname === '/health' && request.method === 'GET') return json({ ok: true, service: 'codevault-sync', version:'0.4.0', registration:!configured(env)?'disabled':env.AUTH_ALLOWED_EMAILS===undefined?'public-beta':'invite-only' });
   if (!env.DB) return json({ error: 'Service not configured' }, 503);
   const authResponse = await authRoute(request, env);
   if (authResponse) return authResponse;

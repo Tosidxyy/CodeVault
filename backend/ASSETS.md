@@ -1,4 +1,4 @@
-# Private image storage (closed pilot)
+# Private image storage (public beta)
 
 Apply migrations 0001–0003 to the **independent CodeVault D1**. Bind a dedicated
 private R2 bucket as `ASSETS`. Do not share Guidy's database or bucket. Do not

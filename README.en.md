@@ -5,9 +5,9 @@
 
 CodeVault is a local-first browser extension for your LeetCode algorithm library. It supports leetcode.com and leetcode.cn in Chrome and Edge.
 
-Release baseline: **v0.3.0**. This release adds backup/restore, a recycle bin, filters, sorting, a draggable panel and English/Chinese interfaces. Chrome Web Store availability depends on the installed release.
+Current version: **v0.4.0** adds optional email-code login and cloud sync public beta alongside backups, trash, filters, sorting, draggable panels and English/Chinese interfaces. Chrome Web Store availability depends on the installed release.
 
-The main branch includes an **unreleased v0.4 cloud-sync preview**. Configure your own backend, sign in and explicitly consent before merging your library; conflicts and retries are supported. The default service is deployed as an email-allowlisted closed pilot; public registration is unavailable. Auth tokens, sync metadata and local layout are excluded from manual backups.
+Optional cloud sync is now in public beta. Sign in with your email and explicitly consent before merging/uploading your saved library. Login alone does not upload data. API keys, AI settings, unsaved drafts and sync metadata are excluded from ordinary library backups; keys and AI settings are never synchronized. Capacity/rate limits apply, so retain local backups.
 
 ## Features
 
@@ -53,10 +53,16 @@ The interface supports English and Simplified Chinese. Non-Chinese browser prefe
 
 ## Data and limits
 
-Library data is stored locally in the browser profile. Uninstalling or clearing extension storage removes it; export a backup first. No public CodeVault cloud service is deployed; optional synchronization on main remains a development preview.
+Library data is stored locally in the browser profile. Uninstalling or clearing extension storage removes it; export a backup first. Optional cloud sync requires email login and explicit upload consent. It is not end-to-end encrypted: the selected operator can process synchronized content.
 
 API keys are stored locally without additional at-rest encryption. User-triggered AI analysis sends problem details, code and language directly to the selected provider, without notes or images. Connection tests and analysis may incur provider charges. CodeVault does not execute code, submit solutions or verify correctness. See the [privacy policy](docs/PRIVACY.md).
 
 Normal problem routes and standard article code blocks are supported. Contest-specific routes and some custom editors/widgets are outside the current scope. CodeVault is an independent project and is not affiliated with LeetCode.
 
 Report issues at [GitHub Issues](https://github.com/Tosidxyy/CodeVault/issues). Include reproduction steps, but never publish keys or private code.
+
+## Cloud sync
+
+Open settings, authorize the selected HTTPS service, request an email code, sign in and explicitly consent to binding/uploading your library. Export a backup before the first merge. Automatic checks and Sync now process saved content; refresh open problem pages after sync. Resolve conflicts per problem; both versions remain in local archives and can be exported. Switching accounts retains the local library and may upload content from the previous account after new consent.
+
+Signing out or deleting the cloud account preserves local knowledge. Deletion revokes all sessions and queues private images for cleanup. Beta image allowances are 100MiB/1,000 objects per account, 2MiB per image, with a 64MiB single-pass processing limit. Errors/limits preserve local content. Service quotas and availability may change; offline backup remains available.

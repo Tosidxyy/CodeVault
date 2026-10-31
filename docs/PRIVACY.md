@@ -1,8 +1,8 @@
 # CodeVault 隐私政策 / Privacy Policy
 
-适用版本：已发布v0.3.0及main分支v0.4开发预览（另注明旧版差异）。更新日期：2026-10-31。开发者：Tosidxyy。
+适用版本：v0.4.0云同步公测及旧版本（另注明差异）。更新日期：2026-10-31。开发者：Tosidxyy。
 
-CodeVault 是帮助用户整理 LeetCode 题目、代码解法、笔记及可选 AI 分析的浏览器扩展。基础功能无需注册 CodeVault 账号；默认云同步服务仅向受邀测试邮箱开放，暂不提供公开注册，也没有在扩展中接入广告、行为分析或遥测 SDK。
+CodeVault 是帮助用户整理 LeetCode 题目、代码解法、笔记及可选 AI 分析的浏览器扩展。基础功能无需注册 CodeVault 账号；v0.4.0默认云同步服务开放邮箱验证码登录公测，登录和上传均为用户选择，也没有在扩展中接入广告、行为分析或遥测 SDK。
 
 ## 处理哪些数据及用途
 
@@ -15,7 +15,7 @@ CodeVault 是帮助用户整理 LeetCode 题目、代码解法、笔记及可选
 
 ## 本地保存与网络请求
 
-题目、解法、笔记、图片及用户主动保存的分析保存在当前浏览器配置文件的扩展 IndexedDB 中，默认不自动上传或云同步；开发预览中，明确绑定云账号并授权后才按下节执行同步。只有用户保存、收藏或编辑笔记等明确操作才持久化对应内容；展开面板时可能向当前 LeetCode 站点的 GraphQL 接口请求题目元数据。LeetCode 请求可能使用浏览器已有的站点会话，扩展不读取或保存 LeetCode 密码或认证 Cookie。
+题目、解法、笔记、图片及用户主动保存的分析保存在当前浏览器配置文件的扩展 IndexedDB 中，默认不自动上传或云同步；v0.4.0中，明确绑定云账号并授权后才按下节执行同步。只有用户保存、收藏或编辑笔记等明确操作才持久化对应内容；展开面板时可能向当前 LeetCode 站点的 GraphQL 接口请求题目元数据。LeetCode 请求可能使用浏览器已有的站点会话，扩展不读取或保存 LeetCode 密码或认证 Cookie。
 
 AI 是可选功能。用户选定服务、输入自己的密钥并授权对应 HTTPS 域名后：
 
@@ -27,11 +27,11 @@ AI 是可选功能。用户选定服务、输入自己的密钥并授权对应 H
 
 预设服务商政策：[DeepSeek](https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html)、[OpenAI](https://openai.com/policies/privacy-policy/)、[Anthropic](https://www.anthropic.com/legal/privacy)。自定义接口的运营者、政策和可信程度由用户自行选择和核实。
 
-## 可选云同步（v0.4开发预览）
+## 可选云同步（v0.4.0公测）
 
-当前main分支允许自行配置HTTPS后端，默认服务为受邀邮箱封闭测试，使用Cloudflare Workers、D1及私有R2存储，验证码由Resend发送。请求邮箱验证码会将邮箱发送给所选服务及其邮件供应商；验证成功会在该服务建立独立账号。登录本身不会上传知识库。用户须明确确认账号绑定及上传授权，才会同步已保存题目、代码、笔记、图片、分析、回收站及迁移备份；不发送AI配置、API Key或未保存草稿。云同步不是端到端加密，所选服务运营者能够处理同步内容，邮件/存储供应商也按其职责处理相关数据；请选择可信服务。
+v0.4.0允许选择HTTPS后端，默认服务为开放邮箱登录的云同步公测，使用Cloudflare Workers、D1及私有R2存储，验证码由Resend发送。请求邮箱验证码会将邮箱发送给所选服务及其邮件供应商；验证成功会在该服务建立独立账号。登录本身不会上传知识库。用户须明确确认账号绑定及上传授权，才会同步已保存题目、代码、笔记、图片、分析、回收站及迁移备份；不发送AI配置、API Key或未保存草稿。云同步不是端到端加密，所选服务运营者能够处理同步内容，邮件/存储供应商也按其职责处理相关数据；请选择可信服务。
 
-服务保存邮箱、验证码的加密校验值、会话令牌哈希及按密钥哈希处理的限流标识，不持久保存明文验证码或登录令牌。扩展在本机保存登录令牌、同步基线、待发送队列和冲突归档，没有额外的静态加密；这些内容不包含在手动知识库备份中。冲突导出文件另含双方完整内容与图片，未加密，请妥善保管。
+服务保存邮箱、验证码的加密校验值、会话令牌哈希及按密钥哈希处理的限流标识，CodeVault数据库不持久保存明文验证码或登录令牌。邮件供应商可能按其政策保留发信记录与邮件内容。扩展在本机保存登录令牌、同步基线、待发送队列和冲突归档，没有额外的静态加密；这些内容不包含在手动知识库备份中。冲突导出文件另含双方完整内容与图片，未加密，请妥善保管。
 
 用户可暂停自动同步或退出账号，本机内容继续保留。离线退出不保证服务端令牌已撤销，界面会说明；会话最长30天有效。切换账号不会自动清空本机知识库，重新绑定前会提示旧账号留存内容可能上传到新账号。云端删除使用版本标记防止旧设备静默恢复。清除云端账号需近期登录和再次明确确认；设置页已提供入口。清除结果待确认时暂停同步，可重试或验证账号仍存在后取消。退出或清号后仍可导出本机冲突归档。
 
@@ -63,15 +63,20 @@ v0.2.0 尚不提供完整题库清空、单题删除或数据导出界面。v0.3
 
 ## English summary
 
-The unreleased v0.4 preview optionally connects to a user-configured HTTPS backend. Email-code login sends your address to that service and its mail provider; login alone does not upload the library. Explicit account-binding consent enables synchronization of saved library content, images, trash and legacy backups, excluding API keys and AI settings. Cloud sync is not end-to-end encrypted; the chosen operator can process the content. Tokens, baselines, pending work and conflict archives stay in extension storage without extra at-rest encryption and are excluded from ordinary backups. Signing out keeps local data; offline server revocation may be unconfirmed. Switching accounts needs consent and may upload content retained from the prior account. Server sessions expire after 30 days. Cloud account deletion revokes access and queues private image cleanup; physical deletion is eventual. The settings page provides deletion with recent-login confirmation; unconfirmed deletion pauses sync until retried or verified as canceled. Local conflict archives can still be exported after logout/deletion. The default backend is an email-allowlisted closed pilot using Cloudflare Workers, D1 and private R2, with Resend for verification mail; public registration is unavailable.
+Version 0.4.0 optionally connects to a user-configured HTTPS backend. Email-code login sends your address to that service and its mail provider; login alone does not upload the library. Explicit account-binding consent enables synchronization of saved library content, images, trash and legacy backups, excluding API keys and AI settings. Cloud sync is not end-to-end encrypted; the chosen operator can process the content. Tokens, baselines, pending work and conflict archives stay in extension storage without extra at-rest encryption and are excluded from ordinary backups. Signing out keeps local data; offline server revocation may be unconfirmed. Switching accounts needs consent and may upload content retained from the prior account. Server sessions expire after 30 days. Cloud account deletion revokes access and queues private image cleanup; physical deletion is eventual. The settings page provides deletion with recent-login confirmation; unconfirmed deletion pauses sync until retried or verified as canceled. Local conflict archives can still be exported after logout/deletion. The default backend is a public beta accepting email-code sign-in using Cloudflare Workers, D1 and private R2, with Resend for verification mail; sign-in and library upload require user action and explicit upload consent.
 
 
 The interface language preference is stored locally. It controls interface text and the requested language of new AI analyses; existing user content is unchanged.
 
 Version 0.3.0 include a local problem recycle bin. Moving a problem there retains associated solutions, analyses, notes, images and legacy backups; the bin does not automatically empty. Confirmed permanent deletion removes those contents, retaining only minimal problem/deletion identifiers and empty note revision markers to prevent stale pages from saving deleted drafts. These markers are omitted from library backups. User-selected backup files may restore deleted content and are not removed by in-extension deletion. Exports include recycle-bin content and exclude AI settings and keys.
 
-CodeVault stores your LeetCode bookmarks, solution snapshots, notes, images and saved analyses locally in the extension's IndexedDB. It also processes the current LeetCode URL and stores recent visits to saved problems for navigation; it does not read your general browser history. The released local-only version requires no CodeVault account; no public cloud service, advertising or telemetry is deployed.
+CodeVault stores your LeetCode bookmarks, solution snapshots, notes, images and saved analyses locally in the extension's IndexedDB. It also processes the current LeetCode URL and stores recent visits to saved problems for navigation; it does not read your general browser history. Local features require no CodeVault account. Version 0.4.0 offers optional public-beta cloud sync; no advertising or telemetry SDK is deployed.
 
 Optional AI settings, including your API key, are stored locally without additional at-rest encryption. A user-triggered connection test sends a short message and authentication to the selected HTTPS endpoint. A user-triggered analysis sends the selected code, language, problem title, URL and difficulty, along with model parameters, instructions and API authentication. Notes, images, the full library and LeetCode credentials are not attached. Requests go directly to the chosen provider, which may charge and retain data under its own policies. Cancellation cannot recall data already received.
 
-Data is used only for the stated user-facing features, consistent with the Chrome Web Store User Data Policy, including Limited Use requirements. Without optional cloud sync, the developer does not receive local library data. Data is not sold; an explicitly selected cloud operator processes synchronized content as described above. You can clear AI settings, edit notes or delete solutions/images; migrated legacy note backups may remain until extension storage is cleared. Removing the extension or clearing its origin storage removes the local library. Disabling it does not delete data. Version 0.2.0 has no export UI. Version 0.3.0 support user-triggered local JSON export/import of saved library data, including legacy notes, excluding API keys and AI settings. Files are unencrypted and never uploaded by CodeVault; imports preserve existing records. Uninstalling does not remove exported files. Contact: https://github.com/Tosidxyy/CodeVault/issues .
+Data is used only for the stated user-facing features, consistent with the Chrome Web Store User Data Policy, including Limited Use requirements. Without optional cloud sync, the developer does not receive local library data. Data is not sold; an explicitly selected cloud operator processes synchronized content as described above. You can clear AI settings, edit notes or delete solutions/images; migrated legacy note backups may remain until extension storage is cleared. Removing the extension or clearing its origin storage removes the local library. Disabling it does not delete data. Version 0.2.0 has no export UI. Version 0.3.0 and later support user-triggered local JSON export/import of saved library data, including legacy notes, excluding API keys and AI settings. Files are unencrypted and never uploaded by CodeVault; imports preserve existing records. Uninstalling does not remove exported files. Contact: https://github.com/Tosidxyy/CodeVault/issues .
+
+
+公测与第三方：默认服务为 https://codevault-api.guidy.fun ，由项目开发者运营，使用Cloudflare Workers/D1/私有R2与Resend处理上述同步和验证码数据。服务可能受容量、频率及供应商额度限制；不会因升级自动登录或上传。邮件供应商可能按自身政策保留邮件记录/内容。服务商政策：[Cloudflare](https://www.cloudflare.com/privacypolicy/)、[Resend](https://resend.com/legal/privacy-policy)。本机知识库备份与冲突归档均未加密；清除云账号不会自动删除本机或已导出文件。
+
+The default public-beta endpoint is https://codevault-api.guidy.fun, operated by the project developer using Cloudflare Workers/D1/private R2 and Resend for the described data processing. Provider capacity/rate limits may affect availability. Updating never automatically signs in or uploads data. The mail provider may retain email records/content under its own policy. Local library backups and conflict exports are unencrypted; deleting the cloud account does not delete local copies or previously exported files.

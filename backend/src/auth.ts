@@ -60,7 +60,7 @@ async function cooldown(env: AuthEnv, address: string): Promise<boolean> {
   return (await env.DB.prepare('INSERT INTO auth_limits(key,hits,expires_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET hits=1,expires_at=excluded.expires_at WHERE auth_limits.expires_at<=?').bind(key,now+minute,now).run()).meta.changes === 1;
 }
 const rateLimited = () => { const response=json({error:'Please wait before trying again'},429);response.headers.set('Retry-After','60');return response; };
-function configured(env: AuthEnv): boolean {
+export function configured(env: AuthEnv): boolean {
   try { return env.AUTH_ENABLED === 'true' && !!env.AUTH_SECRET && env.AUTH_SECRET.length >= 32 && !!env.RESEND_API_KEY && !!env.EMAIL_FROM && email(env.EMAIL_FROM) === env.EMAIL_FROM; }
   catch { return false; }
 }

@@ -8,4 +8,9 @@ test('cloud guard pins CodeVault resources and rejects shared/foreign deployment
  for(const patch of [{name:'guidy-api-development'},{account_id:'b'.repeat(32)},{r2_buckets:[{binding:'ASSETS',bucket_name:'guidy-images'}]},{d1_databases:[{...config.d1_databases[0],database_name:'guidy-development'}]},{vars:{...config.vars,ALLOWED_ORIGINS:'*'}},{routes:[{pattern:'api.guidy.fun',custom_domain:true}]}])assert.throws(()=>validateConfig({...config,...patch},target));
  assert.throws(()=>validateTarget({...target,origins:['https://*/*']}));assert.throws(()=>validateTarget({...target,testEmails:[]}));
  for(const triggers of [undefined,{crons:[]},{crons:['0 0 * * *']},{crons:['*/15 * * * *','0 0 * * *']}])assert.throws(()=>validateConfig({...config,triggers},target));
+ const {AUTH_ALLOWED_EMAILS,...publicVars}=config.vars;
+ assert.throws(()=>validateConfig({...config,vars:publicVars},target));
+ assert.throws(()=>validateConfig(config,{...target,registration:'public-beta'}));
+ assert.equal(validateConfig({...config,vars:publicVars},{...target,registration:'public-beta'}).vars.AUTH_ALLOWED_EMAILS,undefined);
+ assert.throws(()=>validateTarget({...target,registration:'public'}));
 });
