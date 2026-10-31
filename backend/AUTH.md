@@ -82,8 +82,9 @@ between the initial auth check and the write cannot recreate data.
 must configure an hourly Cron Trigger. Code requests also clean expired records.
 Rate identifiers are keyed hashes, not raw email/IP, and expire by the end of the
 associated window (at most one day), then are removed at the next cleanup. Quotas
-are not reset by deleting an account. Future R2 objects must be included in the
-account-deletion lifecycle before attachments are enabled.
+are not reset by deleting an account. Migration 0003 adds durable image cleanup: account deletion queues its R2 objects
+in the same transaction and returns attachmentCleanup: "queued". Physical deletion
+is retried by scheduled cleanup; see ASSETS.md.
 
 Tests mock only the outbound mail transport, not OTPs or authorization. They use
 actual cryptography, actual generated codes from the mock message, SQLite SQL

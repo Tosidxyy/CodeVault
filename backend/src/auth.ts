@@ -147,12 +147,14 @@ export async function authRoute(request: Request, env: AuthEnv): Promise<Respons
     const nonce=randomToken();
     const results=await env.DB.batch([
       env.DB.prepare(`UPDATE auth_users SET deletion_nonce=? WHERE id=? AND EXISTS(SELECT 1 FROM sync_sessions WHERE token_hash=? AND expires_at>?)`).bind(nonce,session.user_id,session.tokenHash,Date.now()),
+      env.DB.prepare('DELETE FROM sync_asset_refs WHERE user_id IN (SELECT id FROM auth_users WHERE deletion_nonce=?)').bind(nonce),
+      env.DB.prepare("UPDATE asset_objects SET state='deleting',touched_at=? WHERE user_id IN (SELECT id FROM auth_users WHERE deletion_nonce=?)").bind(Date.now(),nonce),
       env.DB.prepare('DELETE FROM sync_documents WHERE user_id IN (SELECT id FROM auth_users WHERE deletion_nonce=?)').bind(nonce),
       env.DB.prepare('DELETE FROM auth_challenges WHERE email IN (SELECT email FROM auth_users WHERE deletion_nonce=?)').bind(nonce),
       env.DB.prepare('DELETE FROM sync_sessions WHERE user_id IN (SELECT id FROM auth_users WHERE deletion_nonce=?)').bind(nonce),
       env.DB.prepare('DELETE FROM auth_users WHERE deletion_nonce=?').bind(nonce),
     ]);
-    return results[4].meta.changes===1?json({ok:true}):json({error:'Authentication required'},401);
+    return results[results.length-1].meta.changes===1?json({ok:true,attachmentCleanup:'queued'}):json({error:'Authentication required'},401);
   }
   return json({error:'Not found'},404);
 }

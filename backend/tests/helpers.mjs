@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 
 export async function database() {
   const db=new DatabaseSync(':memory:');
-  for(const name of ['0001_sync.sql','0002_auth.sql'])db.exec(await readFile(new URL('../migrations/'+name,import.meta.url),'utf8'));
+  for(const name of ['0001_sync.sql','0002_auth.sql','0003_assets.sql'])db.exec(await readFile(new URL('../migrations/'+name,import.meta.url),'utf8'));
   const adapter={
     beforeRun:undefined,
     prepare(sql){

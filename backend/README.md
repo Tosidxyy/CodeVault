@@ -25,8 +25,9 @@ on the client before networking. Never acknowledge a local baseline on failure.
 is `null` for permanent deletion. Trash is normal document content. Tombstones
 are retained, so offline devices cannot silently resurrect deleted data. Payloads
 are canonicalized and validated against the existing backup schema; AI settings
-and keys are not included. Maximum request 768KiB and document 700KiB: larger
-attachments require the future R2 storage phase; no silent image truncation.
+and keys are not included. Wire protocol 2 uses private R2 image references; local backups still contain full
+images. Text request/document limits remain 768KiB/700KiB. Uploads are separate
+and limited to 2MiB per image. See [image protocol and lifecycle](ASSETS.md).
 
 Session ownership comes exclusively from a SHA-256 hashed, 256-bit opaque bearer
 session in `sync_sessions`, with expiry. Email OTP verification creates accounts
@@ -46,7 +47,7 @@ enumerated as tombstones. Persist conflict copies before presenting resolution.
 
 - Production auth configuration, real OTP delivery and bounce/suppression handling.
 - Isolated Worker/D1 configuration and migrations, domain, email sender/secrets.
-- R2 images with ownership checks, retry and cleanup lifecycle.
+- Real private R2 binding, Cron cleanup configuration and cloud lifecycle acceptance.
 - Extension account binding/consent, persistent outbox, atomic remote application
   with local revision fencing, alarms/retries and conflict resolution UI.
 - Local Worker runtime and full multi-device/offline/crash integration checks.
